@@ -1,4 +1,4 @@
-# DreamChallenge
+# The Digital Mammography DREAM Challenge
 Repository for 2016-2017 Dream Challenge
 
 This implements preprocessing and training of the 2016 Digital Mammography Dream Challenge.
