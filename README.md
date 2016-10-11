@@ -7,5 +7,5 @@ This implements preprocessing and training of the 2016 Digital Mammography Dream
 See the [installation instructions](INSTALL.md) for a step-by-step guide.
 - Install [OpenCV]()
 - Install [Pydicom]()
-- Assume there is a file named [traningData] containing the .dcm files of mammography for training.
-- Assume there is a file named [testData] containing the .dcm files for test phase.
+- Assume there is a file named [traningData]() containing the .dcm files of mammography for training.
+- Assume there is a file named [testData]() containing the .dcm files for test phase.
