@@ -9,3 +9,4 @@ See the [installation instructions](INSTALL.md) for a step-by-step guide.
 - Install [Pydicom]()
 - Assume there is a file named [traningData]() containing the .dcm files of mammography for training.
 - Assume there is a file named [testData]() containing the .dcm files for test phase.
+- Assume there is a file named [metadata]() containing [exams\_metadata.tsv]() and [images\_crosswalk.tsv]()
