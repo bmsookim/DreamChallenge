@@ -6,3 +6,4 @@ mkdir preprocessedData/train/malignant
 mkdir preprocessedData/val/benign
 mkdir preprocessedData/val/malignant
 
+sudo apt-get install python-opencv
