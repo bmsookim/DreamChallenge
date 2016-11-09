@@ -19,15 +19,16 @@ def test(config):
     img1 = cv2.imread(img1_path, 0)
     img2 = cv2.imread(img2_path, 0)
 
+    """
     features, matches =  matcher.bruteForce(img1, img2, method='orb')
     matcher.draw(img1, img2, features, matches)
-    """
     features, matches, matchesMask =  matcher.flann(img1, img2, method='sift')
     matcher.draw(img1, img2, features, matches, matchesMask)
 
     features, matches, matchesMask =  matcher.flann(img1, img2, method='surf')
     matcher.draw(img1, img2, features, matches, matchesMask)
     """
+    alignment.ecc(img1_path, img2_path)
 
 if __name__ == '__main__':
     import ConfigParser

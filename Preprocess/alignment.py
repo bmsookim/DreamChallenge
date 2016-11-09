@@ -5,6 +5,19 @@ from __future__ import print_function
 import cv2
 import numpy as np
 
+def flip(img, direction='H'):
+    if direction == 'H':
+        d_code = 1
+    elif direction == 'V':
+        d_code = 0
+    else:
+        raise ValueError("Invalid flip-direction: {0}".format(direction))
+
+    return cv2.flip(img, d_code)
+
+def resize(img, size):
+    return cv2.resize(img, size)
+
 """
 # Enhanced Correlation Coefficient (ECC)
     The ECC image alignment algorithm introduced in OpenCV 3 is based on a 2008 paper titled Parametric Image Alignment
@@ -15,7 +28,6 @@ import numpy as np
 ref. http://www.learnopencv.com/image-alignment-ecc-in-opencv-c-python/
 
 """
-# require OpenCV3
 def ecc(img1_path, img2_path):
     img1 = cv2.imread(img1_path)
     img2 = cv2.imread(img2_path)
