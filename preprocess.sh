@@ -1,5 +1,5 @@
-chmod 777 requirements.sh
-./requirements.sh
+#chmod 777 requirements.sh
+#./requirements.sh
 
 # export PATH=/usr/local/cuda-7.5/bin${PATH:+:${PATH}}
 # export LD_LIBRARY_PATH=/usr/local/cuda-7.5/lib64
