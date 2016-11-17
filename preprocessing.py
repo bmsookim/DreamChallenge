@@ -36,7 +36,7 @@ class Preprocessor(object):
     def load_data(self):
         args = self.args
 
-        logger.info('load dcm files in {0}'.format(self.data_dir))
+        logger.info('load dcm file list in {0}'.format(self.data_dir))
 
         self.dcm_file_paths = list()
         for dcm_file_path in glob.glob('/'.join([self.data_dir, '*.dcm'])):
@@ -55,6 +55,9 @@ class Preprocessor(object):
                 self.config['resultDir'],
                 self.args.corpus,self.args.dataset,
                 p_id])
+            logger.info('Preprocessing... {p_id} --> {target_dir}'.format(
+                p_id = p_id,
+                target_dir = target_dir))
 
             # each view
             p = True
@@ -68,6 +71,8 @@ class Preprocessor(object):
 
     # TODO:below function only works in dreamCh dcm format
     def build_patient_dict(self):
+        logger.info('build patient dicom dict')
+
         patient_dict = dict()
 
         # pid: patient id
@@ -88,19 +93,22 @@ class Preprocessor(object):
         return patient_dict
 
     def preprocessing_dcm(self, dcm, target_dir):
+        logger.debug('convert dicom to cv2')
         img = Preprocess.dcm2cvimg(dcm)
         (d, v) = dcm.SeriesDescription.split(' ', 1)
 
         # execute pipeline methods by configuration
         for method in self.config['preprocessing']['modify']['pipeline']:
             if method == 'flip' and  d == 'R': continue
-
+            logger.debug(method)
             method_f = getattr(Preprocess, method)
             img = method_f(img)
 
         # save preprocessed dcm image
         path = '/'.join([target_dir, v, d + '.png'])
         util.mkdir(path)
+
+        logger.debug('write image')
         Preprocess.write_img(path, img)
 
 

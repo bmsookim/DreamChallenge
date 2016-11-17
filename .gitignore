@@ -182,7 +182,7 @@ fabric.properties
 # .idea/misc.xml 
 # *.ipr
 
-*.ini
+*.yaml
 
 tmp
 preprocessing
