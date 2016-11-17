@@ -1,2 +1,10 @@
 data:
     pilot: "/home/yumihwan/workspace/data/DreamChallenge_mammo/dataset/pilot_images/"
+    
+    meta: 
+        exams_metadata: "./metadata/exams_metadata.tsv"
+        images_crosswalk: "./metadata/images_croswalk.tsv"
+    training: "./testData"
+    test: "./testData"
+
+    target: "./preprocessing"
