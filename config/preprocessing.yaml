@@ -1,10 +1,32 @@
+# Dataset paths
 data:
-    pilot: "/home/yumihwan/workspace/data/DreamChallenge_mammo/dataset/pilot_images/"
-    
-    meta: 
-        exams_metadata: "./metadata/exams_metadata.tsv"
-        images_crosswalk: "./metadata/images_croswalk.tsv"
-    training: "./testData"
-    test: "./testData"
+    dreamCh:
+        pilot:      /home/yumihwan/workspace/data/DreamChallenge_mammo/dataset/pilot_images/
+        training:   trainingData
+        test:       testData
+        meta: 
+            exams_metadata:   metadata/exams_metadata.tsv
+            images_crosswalk: metadata/images_croswalk.tsv
+    ImBreast:
+        root:   /home/yumihwan/workspace/data/DreamChallenge_mammo/INBreast/
+        dicoms: AllDICOMs
+        rio:    AllROI
 
-    target: "./preprocessing"
+# Preprocessing pipeline & applied methods
+preprocessing:
+    pipeline    : [modify, feature, adjsut]
+
+    modify:
+        # method      [resize, flip, trim, fill]
+        pipeline    : [resize, flip]
+    feature:
+        # extraction  [orb, sift, surf]
+        extraction  : surf
+        # matchin:    [brute_force, flann]
+        matching    : flann
+    adjust:
+        rule        : pass
+        algo        : pass
+
+# Preprocessing result root directory path
+resultDir: preprocessing
