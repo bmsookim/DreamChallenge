@@ -5,12 +5,14 @@ import matplotlib.pyplot as plt
 """
 image I/O func.
 """
-def dcm2cvimg(dcm):
+def dcm2cvimg(dcm, proc_num=0):
+    tmp_img_path = 'preprocessing/tmp'+str(proc_num) + '.png'
+
     #TODO: imporve performance (no writing tmp image)
     plt.imshow(dcm.pixel_array, cmap=plt.cm.bone)
-    plt.savefig('preprocessing/tmp.png')
+    plt.savefig(tmp_img_path)
 
-    img = cv2.imread('preprocessing/tmp.png')
+    img = cv2.imread(tmp_img_path)
     return img
 
 def read_img(path):
