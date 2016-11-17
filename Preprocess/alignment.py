@@ -5,22 +5,6 @@ from __future__ import print_function
 import cv2
 import numpy as np
 
-def flip(img, direction='H'):
-    if direction == 'H':
-        d_code = 1
-    elif direction == 'V':
-        d_code = 0
-    else:
-        raise ValueError("Invalid flip-direction: {0}".format(direction))
-
-    return cv2.flip(img, d_code)
-
-# size parameter is tuple(W, H)
-def resize(img, size):
-    return cv2.resize(img, size)
-
-def trimming(arr):
-    return cv2.convertScaleAbs(arr, alpha=(255.0/arr.max(axis=1).max(axis=0)))
 
 
 def run(img1, img2):

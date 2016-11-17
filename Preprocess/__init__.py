@@ -1,12 +1,27 @@
 import numpy as np
 import cv2
+import matplotlib.pyplot as plt
 
-def arr2cvimg(pixel_array):
-    #img = cv2.imdecode(pixel_array, cv2.CV_LOAD_IMAGE_COLOR)
-    img = cv2.cvtColor(pixel_array, cv2.COLOR_GRAY2BGR)
+"""
+image I/O func.
+"""
+def dcm2cvimg(dcm):
+    #TODO: imporve performance (no writing tmp image)
+    plt.imshow(dcm.pixel_array, cmap=plt.cm.bone)
+    plt.savefig('preprocessing/tmp.png')
 
+    img = cv2.imread('preprocessing/tmp.png')
     return img
 
+def read_img(path):
+    return cv2.imread(path)
+
+def write_img(path, image):
+    cv2.imwrite(path, image)
+
+"""
+adjust image
+"""
 def flip(img, direction='H'):
     if direction == 'H':
         d_code = 1
@@ -18,7 +33,7 @@ def flip(img, direction='H'):
     return cv2.flip(img, d_code)
 
 # size parameter is tuple(W, H)
-def resize(img, size=(256,256)):
+def resize(img, size=(800,800)):
     return cv2.resize(img, size)
 
 def trim(arr):

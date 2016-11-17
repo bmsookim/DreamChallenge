@@ -51,25 +51,20 @@ class Preprocessor(object):
 
         # each patient
         for p_id in p_dict.keys():
-            p_dir = '/'.join([
+            target_dir = '/'.join([
                 self.config['resultDir'],
                 self.args.corpus,self.args.dataset,
                 p_id])
 
             # each view
+            p = True
             for view in p_dict[p_id].keys():
+                if p:
+                    p = False
+                    continue
                 for direction in p_dict[p_id][view].keys():
                     dcm = dicom.read_file(p_dict[p_id][view][direction])
-                    self.preprocessing_dcm(dcm)
-
-
-                """
-                # if has both direction
-                if 'R' in p_dict[p_id][view] and 'L' in p_dict[p_id][view]:
-                    l_dcm = dicom.read_file(p_dict[p_id][view]['L'])
-                    r_dcm = dicom.read_file(p_dict[p_id][view]['R'])
-                    self.preprocessing_dcms(l_dcm, r_dcm)
-                """
+                    self.preprocessing_dcm(dcm, target_dir)
 
     # TODO:below function only works in dreamCh dcm format
     def build_patient_dict(self):
@@ -92,15 +87,22 @@ class Preprocessor(object):
 
         return patient_dict
 
-    def preprocessing_dcm(self, dcm):
-        img = Preprocess.arr2cvimg(dcm.pixel_array)
+    def preprocessing_dcm(self, dcm, target_dir):
+        img = Preprocess.dcm2cvimg(dcm)
+        (d, v) = dcm.SeriesDescription.split(' ', 1)
 
         # execute pipeline methods by configuration
         for method in self.config['preprocessing']['modify']['pipeline']:
+            if method == 'flip' and  d == 'R': continue
+
             method_f = getattr(Preprocess, method)
             img = method_f(img)
 
-        util.imshow(img, 'tt')
+        # save preprocessed dcm image
+        path = '/'.join([target_dir, v, d + '.png'])
+        util.mkdir(path)
+        Preprocess.write_img(path, img)
+
 
     def alignment_both(self, l_img, r_img):
         # feature extraction & matching
@@ -120,9 +122,11 @@ if __name__ == '__main__':
 
     # program argument
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--corpus', required=True,
+    parser.add_argument('-c', '--corpus',
+            required=True,
             help='will be used in preprocessing phase')
-    parser.add_argument('-d', '--dataset', required=True,
+    parser.add_argument('-d', '--dataset',
+            required=True,
             help='dataset in corpus')
     args = parser.parse_args()
 
