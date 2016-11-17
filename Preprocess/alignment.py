@@ -23,6 +23,9 @@ def trimming(arr):
     return cv2.convertScaleAbs(arr, alpha=(255.0/arr.max(axis=1).max(axis=0)))
 
 
+def run(img1, img2):
+    pass
+
 """
 # Enhanced Correlation Coefficient (ECC)
     The ECC image alignment algorithm introduced in OpenCV 3 is based on a 2008 paper titled Parametric Image Alignment

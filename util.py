@@ -6,7 +6,8 @@ import logging.config
 
 # installed packages
 import yaml
-import dicom
+import cv2
+import numpy as np
 
 
 """
@@ -40,7 +41,17 @@ def build_logger(default_path='config/logging.yaml',
     return logging
 
 """
-dicom
+CV2
 """
-def load_dcm(dcm_filePath):
-    return dicom.read_file(dcm_filePath)
+def imshow_gray(img, title, normalize=True):
+    """ Tiny helper to show images as uint8 and remove axis labels """
+    if normalize:
+        img_max, img_min = np.max(img), np.min(img)
+        img = 255.0 * (img - img_min) / (img_max - img_min)
+    plt.title(title)
+    plt.imshow(img.astype('uint8').squeeze(), cmap = 'gray')
+    plt.gca().axis('off')
+
+def imshow(img, title):
+    cv2.imshow(title, img)
+    cv2.waitKey(0)

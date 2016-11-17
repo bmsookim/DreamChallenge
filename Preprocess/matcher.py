@@ -33,7 +33,7 @@ def extract_features(img1, img2, method='sift'):
     Brute-Force matcher is simple. It takes the descriptor of one feature in first set and is matched with
     all other features in second set using some distance calculation. And the closest one is returned.
 """
-def bruteForce(img1, img2, method='sift'):
+def bruteforce(img1, img2, method='sift'):
     features = extract_features(img1, img2, method)
     (kp1, kp2, des1, des2) = features
 
