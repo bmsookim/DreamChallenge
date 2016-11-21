@@ -186,3 +186,7 @@ fabric.properties
 
 tmp
 preprocessing
+pilot
+trainingData
+testData
+metadata

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 image I/O func.
 """
 def dcm2cvimg(dcm, proc_num=0):
-    tmp_img_path = 'preprocessing/tmp'+str(proc_num) + '.png'
+    tmp_img_path = 'tmp/tmp'+str(proc_num) + '.png'
 
     #TODO: imporve performance (no writing tmp image)
     plt.imshow(dcm.pixel_array, cmap=plt.cm.bone)
