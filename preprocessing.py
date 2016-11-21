@@ -139,7 +139,7 @@ class App(object):
             proc_feeds = [patient_dict]
         else:
             # TODO:round? floor?
-            feed_size = int(len(patient_dict) / self.proc_cnt / 10) + 1
+            feed_size = int(len(patient_dict) / self.proc_cnt ) + 1
             proc_feeds = util.split_dict(patient_dict, feed_size)
         logger.debug('split patient_dict finish')
 
@@ -185,25 +185,24 @@ class App(object):
             elapsed_time = timer() - start
             ))
 
-    @profile
     def preprocessing_dcm(self, dcm, target_dir, proc_num=0):
-        logger.debug('convert dicom to cv2')
         img = Preprocessor.dcm2cvimg(dcm, proc_num=proc_num)
         (d, v) = dcm.SeriesDescription.split(' ', 1)
 
         # execute pipeline methods by configuration
         for method in self.config['preprocessing']['modify']['pipeline']:
             if method == 'flip' and  d == 'R': continue
-            logger.debug(method)
+            logger.debug('start: {method}'.format(method=method))
             method_f = getattr(Preprocessor, method)
             img = method_f(img)
+            logger.debug('end  : {method}'.format(method=method))
 
         # save preprocessed dcm image
+        logger.debug('start: {method}'.format(method='write'))
         path = '/'.join([target_dir, v, d + '.png'])
         util.mkdir(path)
-
-        logger.debug('write image')
         Preprocessor.write_img(path, img)
+        logger.debug('end  : {method}'.format(method='write'))
 
 
     def alignment_both(self, l_img, r_img):

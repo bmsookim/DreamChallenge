@@ -1,3 +1,9 @@
+import logging
+FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
+logging.basicConfig(format=FORMAT)
+logger = logging.getLogger()
+logger.info('a')
+
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
@@ -38,7 +44,7 @@ def flip(img, direction='H'):
 
 # size parameter is tuple(W, H)
 def resize(img, size=(800,800)):
-    return cv2.resize(img, size)
+    return cv2.resize(img, size, interpolation = cv2.INTER_NEAREST)
 
 def trim(arr):
     return cv2.convertScaleAbs(arr, alpha=(255.0/arr.max(axis=1).max(axis=0)))
