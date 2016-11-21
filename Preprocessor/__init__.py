@@ -10,7 +10,9 @@ def dcm2cvimg(dcm, proc_num=0):
 
     #TODO: imporve performance (no writing tmp image)
     plt.imshow(dcm.pixel_array, cmap=plt.cm.bone)
-    plt.savefig(tmp_img_path)
+    plt.axis('off')
+    plt.savefig(tmp_img_path, bbox_inches="tight", pad_inches=0)
+    plt.clf()
 
     img = cv2.imread(tmp_img_path)
     return img

@@ -124,6 +124,7 @@ class App(object):
     """
     Preprocessing Main Pipeline (end-point)
     """
+    @profile
     def preprocessing(self):
         target_dir = '/'.join([
             self.config['resultDir'],
@@ -138,7 +139,7 @@ class App(object):
             proc_feeds = [patient_dict]
         else:
             # TODO:round? floor?
-            feed_size = int(len(patient_dict) / self.proc_cnt) + 1
+            feed_size = int(len(patient_dict) / self.proc_cnt / 10) + 1
             proc_feeds = util.split_dict(patient_dict, feed_size)
         logger.debug('split patient_dict finish')
 
@@ -154,6 +155,9 @@ class App(object):
 
         for proc in procs:
             proc.join()
+        """
+        self.preprocessing_single_proc(proc_feeds[0],self.data_dir, target_dir, 0)
+        """
 
     def preprocessing_single_proc(self, p_dict, source_dir, target_dir, proc_num=0):
         logger.info('Proc{proc_num} start'.format(proc_num = proc_num))
@@ -168,13 +172,12 @@ class App(object):
                 target_dir = target_dir))
 
             dicom_dict = p_dict[k]
-            target_dir = '/'.join([target_dir, p_id, exam_idx])
+            img_target_dir = '/'.join([target_dir, p_id, exam_idx])
             for v in dicom_dict.keys():
                 for l in dicom_dict[v].keys():
                     info = dicom_dict[v][l]
                     dcm = dicom.read_file('/'.join([source_dir,dicom_dict[v][l]['fname']]))
-                    self.preprocessing_dcm(dcm, target_dir, proc_num)
-            sys.exit(-1)
+                    self.preprocessing_dcm(dcm, img_target_dir, proc_num)
 
         logger.info('Proc{proc_num} Finish : size[{p_size}]\telapsed[{elapsed_time}]'.format(
             proc_num = proc_num,
@@ -182,6 +185,7 @@ class App(object):
             elapsed_time = timer() - start
             ))
 
+    @profile
     def preprocessing_dcm(self, dcm, target_dir, proc_num=0):
         logger.debug('convert dicom to cv2')
         img = Preprocessor.dcm2cvimg(dcm, proc_num=proc_num)
