@@ -1,5 +1,8 @@
 # default packages
 import os
+import multiprocessing
+
+from itertools import izip_longest, ifilter
 
 import logging
 import logging.config
@@ -17,6 +20,22 @@ def mkdir(dir_path):
     sub_path = os.path.dirname(dir_path)
     if not os.path.exists(sub_path):
         os.makedirs(sub_path)
+
+"""
+DS functions
+"""
+def split_dict(d, cnt):
+    result = [d.iteritems()] * cnt
+    g = (dict(ifilter(None, v))
+            for v in izip_longest(*result))
+
+    return list(g)
+
+"""
+Env.
+"""
+def get_cpu_cnt():
+    return multiprocessing.cpu_count()
 
 """
 Logger
