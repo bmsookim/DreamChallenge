@@ -1,3 +1,0 @@
-# Preprocessing Dicom File & Image
-
-....
