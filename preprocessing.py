@@ -7,6 +7,7 @@ import glob
 import sys
 import multiprocessing
 import csv
+import shutil
 
 from timeit import default_timer as timer
 
@@ -124,13 +125,21 @@ class App(object):
     """
     Preprocessing Main Pipeline (end-point)
     """
-    @profile
     def preprocessing(self):
         target_dir = '/'.join([
             self.config['resultDir'],
             self.args.corpus,self.args.dataset])
+        tmp_dir    = '/'.join([
+            self.config['resultDir'],
+            'tmp'])
+
+        try:
+            shutil.rmtree(target_dir)
+        except:
+            pass
+
         util.mkdir(target_dir)
-        util.mkdir('./tmp/')
+        util.mkdir(tmp_dir)
 
         # find patient pair
         patient_dict = self.build_image_data()
@@ -139,7 +148,7 @@ class App(object):
             proc_feeds = [patient_dict]
         else:
             # TODO:round? floor?
-            feed_size = int(len(patient_dict) / self.proc_cnt ) + 1
+            feed_size = int(len(patient_dict) / self.proc_cnt) + 1
             proc_feeds = util.split_dict(patient_dict, feed_size)
         logger.debug('split patient_dict finish')
 
@@ -148,21 +157,26 @@ class App(object):
             proc_feed = proc_feeds[proc_num]
 
             proc = multiprocessing.Process(target=self.preprocessing_single_proc,
-                    args=(proc_feed,self.data_dir, target_dir, proc_num))
+                    args=(proc_feed,self.data_dir, target_dir, tmp_dir, proc_num))
 
             procs.append(proc)
             proc.start()
 
         for proc in procs:
             proc.join()
-        """
-        self.preprocessing_single_proc(proc_feeds[0],self.data_dir, target_dir, 0)
-        """
 
-    def preprocessing_single_proc(self, p_dict, source_dir, target_dir, proc_num=0):
+        # merge tmp merge data
+        metadata_f = open('/'.join([target_dir, 'metadata.tsv']), 'w')
+        for metadata_tmp in glob.glob('/'.join([tmp_dir, 'metadata_*.tsv'])):
+            metadata_tmp_f = open(metadata_tmp, 'r')
+            metadata_f.write(metadata_tmp_f.read())
+        metadata_f.close()
+
+    def preprocessing_single_proc(self, p_dict, source_dir, target_dir, tmp_dir, proc_num=0):
         logger.info('Proc{proc_num} start'.format(proc_num = proc_num))
         start = timer()
 
+        meta_f = open('/'.join([tmp_dir, 'metadata_' + str(proc_num) + '.tsv']),'w')
         for (p_id, exam_idx) in p_dict.keys():
             k = (p_id, exam_idx)
 
@@ -179,6 +193,9 @@ class App(object):
                     dcm = dicom.read_file('/'.join([source_dir,dicom_dict[v][l]['fname']]))
                     self.preprocessing_dcm(dcm, img_target_dir, proc_num)
 
+                    meta_f.write('\t'.join([p_id, exam_idx, v, l, dicom_dict[v][l]['cancer']]))
+                    meta_f.write('\n')
+
         logger.info('Proc{proc_num} Finish : size[{p_size}]\telapsed[{elapsed_time}]'.format(
             proc_num = proc_num,
             p_size = len(p_dict),
@@ -187,23 +204,21 @@ class App(object):
 
     def preprocessing_dcm(self, dcm, target_dir, proc_num=0):
         img = Preprocessor.dcm2cvimg(dcm, proc_num=proc_num)
-        (d, v) = dcm.SeriesDescription.split(' ', 1)
+        (l, v) = dcm.SeriesDescription.split(' ', 1)
 
         # execute pipeline methods by configuration
         for method in self.config['preprocessing']['modify']['pipeline']:
-            if method == 'flip' and  d == 'R': continue
+            if method == 'flip' and  l == 'R': continue
             logger.debug('start: {method}'.format(method=method))
-            method_f = getattr(Preprocessor, method)
-            img = method_f(img)
+            img = getattr(Preprocessor, method)(img)
             logger.debug('end  : {method}'.format(method=method))
 
         # save preprocessed dcm image
         logger.debug('start: {method}'.format(method='write'))
-        path = '/'.join([target_dir, v, d + '.png'])
-        util.mkdir(path)
-        Preprocessor.write_img(path, img)
+        img_dir = '/'.join([target_dir, l])
+        util.mkdir(img_dir)
+        Preprocessor.write_img('/'.join([img_dir, v + '.png']), img)
         logger.debug('end  : {method}'.format(method='write'))
-
 
     def alignment_both(self, l_img, r_img):
         # feature extraction & matching

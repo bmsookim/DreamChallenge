@@ -17,9 +17,8 @@ import numpy as np
 File system utils
 """
 def mkdir(dir_path):
-    sub_path = os.path.dirname(dir_path)
-    if not os.path.exists(sub_path):
-        os.makedirs(sub_path)
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
 
 """
 DS functions

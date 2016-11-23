@@ -2,7 +2,7 @@ version: 1
 disable_existing_loggers: False
 formatters:
     simple:
-        format: "%(asctime)s %(levelname)-6s [%(filename)s:%(lineno)s] %(message)s"
+        format: "%(asctime)s %(levelname)-6s [%(filename)s:%(lineno)s - %(funcName)30s()]  %(message)s"
 
 handlers:
     console:
@@ -31,7 +31,7 @@ handlers:
 
 loggers:
     my_module:
-        level: DEBUG
+        level: INFO
         handlers: [console]
         propagate: no
 
