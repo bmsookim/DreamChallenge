@@ -12,3 +12,22 @@
 $ python preprocessing.py -c dreamCh -d pilot -m /home/yumihwan/workspace/data/DreamChallenge_mammo/dataset/pilot_metadata/ -p 3
 ```
 
+
+### Result 
+Root
+|- *.sh
+|- *.py
+|- trainingData
+|- testData
+|- preprocessedData
+    |- pilot
+        |- ...
+    |- trainingData
+        |- <patient_id>
+            |- <exam_idx>
+                |- meta.tsv
+                |- <view>
+                    |- <laterality>
+                        |- *.png
+|- testData
+|- ...
