@@ -14,6 +14,7 @@ $ python preprocessing.py -c dreamCh -d pilot -m /home/yumihwan/workspace/data/D
 
 
 ### Result 
+```
 Root
 |- *.sh
 |- *.py
@@ -31,3 +32,4 @@ Root
                         |- *.png
 |- testData
 |- ...
+```
