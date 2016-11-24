@@ -104,7 +104,7 @@ class App(object):
 
         p_dict = dict()
         with open(cross_walk_file_path, 'rt') as f:
-            next(f, None) # skip first line
+            next(f, None)
             walker = csv.reader(f, delimiter='\t')
             for row in walker:
                 (p_id, exam_idx, img_idx, v, l, fname, cancer) = row
@@ -120,7 +120,7 @@ class App(object):
                         'cancer': cancer
                 }
 
-            return p_dict
+        return p_dict
 
     """
     Preprocessing Main Pipeline (end-point)
@@ -143,6 +143,7 @@ class App(object):
 
         # find patient pair
         patient_dict = self.build_image_data()
+
         logger.debug('split patient_dict start')
         if self.proc_cnt == 1:
             proc_feeds = [patient_dict]
@@ -177,11 +178,11 @@ class App(object):
         start = timer()
 
         meta_f = open('/'.join([tmp_dir, 'metadata_' + str(proc_num) + '.tsv']),'w')
+        cnt=0
         for (p_id, exam_idx) in p_dict.keys():
             k = (p_id, exam_idx)
 
-            logger.debug('Proc{proc_num} : \
-                    Preprocessing... {p_id} --> {target_dir}'.format(
+            logger.debug('Proc{proc_num} : Preprocessing... {p_id} --> {target_dir}'.format(
                 proc_num = proc_num,
                 p_id = p_id,
                 target_dir = target_dir))
@@ -198,13 +199,15 @@ class App(object):
 
                     meta_f.write('\t'.join([p_id, exam_idx, v, l, info['cancer']]))
                     meta_f.write('\n')
+                    cnt+=1
 
-        logger.info('Proc{proc_num} Finish : \
-                size[{p_size}]\telapsed[{elapsed_time}]'.format(
+        logger.info('Proc{proc_num} Finish : size[{p_size}]\telapsed[{elapsed_time}]'.format(
             proc_num = proc_num,
             p_size = len(p_dict),
             elapsed_time = timer() - start
             ))
+        print("{0} - {1}".format(proc_num, cnt))
+        meta_f.close()
 
     def preprocessing_dcm(self, dcm, (v,l), target_dir, proc_num=0):
         img = Preprocessor.dcm2cvimg(dcm, proc_num=proc_num)
