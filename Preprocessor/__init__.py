@@ -50,7 +50,7 @@ def flip(img, direction='H'):
     return cv2.flip(img, d_code)
 
 # size parameter is tuple(W, H)
-def resize(img, size=(800,800)):
+def resize(img, size=(1024,1024)):
     return cv2.resize(img, size, interpolation = cv2.INTER_NEAREST)
 
 def trim(img):

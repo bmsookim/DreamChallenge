@@ -180,7 +180,8 @@ class App(object):
         for (p_id, exam_idx) in p_dict.keys():
             k = (p_id, exam_idx)
 
-            logger.debug('Proc{proc_num} : Preprocessing... {p_id} --> {target_dir}'.format(
+            logger.debug('Proc{proc_num} : \
+                    Preprocessing... {p_id} --> {target_dir}'.format(
                 proc_num = proc_num,
                 p_id = p_id,
                 target_dir = target_dir))
@@ -190,21 +191,23 @@ class App(object):
             for v in dicom_dict.keys():
                 for l in dicom_dict[v].keys():
                     info = dicom_dict[v][l]
-                    dcm = dicom.read_file('/'.join([source_dir,dicom_dict[v][l]['fname']]))
-                    self.preprocessing_dcm(dcm, img_target_dir, proc_num)
+                    filename = info['fname']
+                    dcm = dicom.read_file('/'.join([source_dir, info['fname']]))
 
-                    meta_f.write('\t'.join([p_id, exam_idx, v, l, dicom_dict[v][l]['cancer']]))
+                    self.preprocessing_dcm(dcm, (v,l), img_target_dir, proc_num)
+
+                    meta_f.write('\t'.join([p_id, exam_idx, v, l, info['cancer']]))
                     meta_f.write('\n')
 
-        logger.info('Proc{proc_num} Finish : size[{p_size}]\telapsed[{elapsed_time}]'.format(
+        logger.info('Proc{proc_num} Finish : \
+                size[{p_size}]\telapsed[{elapsed_time}]'.format(
             proc_num = proc_num,
             p_size = len(p_dict),
             elapsed_time = timer() - start
             ))
 
-    def preprocessing_dcm(self, dcm, target_dir, proc_num=0):
+    def preprocessing_dcm(self, dcm, (v,l), target_dir, proc_num=0):
         img = Preprocessor.dcm2cvimg(dcm, proc_num=proc_num)
-        (l, v) = dcm.SeriesDescription.split(' ', 1)
 
         # execute pipeline methods by configuration
         for method in self.config['preprocessing']['modify']['pipeline']:
@@ -255,6 +258,10 @@ if __name__ == '__main__':
             type=int,
             required=False,
             help='how many use processores')
+    parser.add_argument('-v', '--valid',
+            type=int,
+            required=False,
+            help='force to create valid set from training set')
 
     args = parser.parse_args()
 
