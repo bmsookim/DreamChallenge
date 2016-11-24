@@ -62,10 +62,13 @@ class App(object):
     def build_image_data(self):
         logger.info('load dcm file list in {0}'.format(self.data_dir))
 
+        """
         if not self.args.metadata:
             return self.__build_image_data_from_dicom()
         else:
             return self.__build_image_data_from_metadata()
+        """
+        return self.__build_image_data_from_metadata()
 
     def __build_image_data_from_dicom(self):
         logger.error('This method is deprecated: {0}'.format('__build_image_data_from_dicom'))
@@ -99,8 +102,12 @@ class App(object):
     def __build_image_data_from_metadata(self):
         logger.info('build image data from metadata')
 
-        metadata_dir = self.args.metadata
-        cross_walk_file_path = '/'.join([metadata_dir, self.config['data']['meta']['images_crosswalk']])
+
+        config_metadata = self.config['data'][self.args.corpus]
+        cross_walk_file_path = '/'.join([
+            config_metadata['metadata']['dir'],
+            config_metadata['metadata']['images_crosswalk']
+            ])
 
         p_dict = dict()
         with open(cross_walk_file_path, 'rt') as f:
@@ -254,9 +261,11 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--dataset',
             required=True,
             help='dataset in corpus')
+    """
     parser.add_argument('-m', '--metadata',
             required=False,
             help='directory path including images_crosswalk.csv')
+    """
     parser.add_argument('-p', '--processor',
             type=int,
             required=False,

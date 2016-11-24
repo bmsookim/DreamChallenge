@@ -40,8 +40,8 @@ def get_cpu_cnt():
 Logger
 """
 def build_logger(default_path='config/logging.yaml',
-        default_level = logging.DEBUG,
         env_key='LOG_CFG'):
+
     path = default_path
     value = os.getenv(env_key, None)
     if value:
@@ -51,7 +51,8 @@ def build_logger(default_path='config/logging.yaml',
             config = yaml.safe_load(f.read())
         for handler in config['handlers'].keys():
             if 'filename' in config['handlers'][handler]:
-                mkdir(config['handlers'][handler]['filename'])
+                print os.path.dirname(config['handlers'][handler]['filename'])
+                mkdir(os.path.dirname(config['handlers'][handler]['filename']))
         logging.config.dictConfig(config)
     else:
         logging.basicConfig(level=devault_level)
