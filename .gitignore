@@ -181,3 +181,12 @@ fabric.properties
 # modules.xml
 # .idea/misc.xml 
 # *.ipr
+
+*.yaml
+
+tmp
+preprocessing
+pilot
+trainingData
+testData
+metadata
