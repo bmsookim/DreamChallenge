@@ -6,7 +6,7 @@ data:
         test : testData
     InBreast:
         root:   /home/yumihwan/workspace/data/DreamChallenge_mammo/INBreast/
-        dicoms: AllDICOMs
+        dicoms: /home/yumihwan/workspace/data/DreamChallenge_mammo/INBreast/AllDICOMs
         rio:    AllROI
 
     meta: 
@@ -19,7 +19,7 @@ preprocessing:
 
     modify:
         # method      [resize, flip, trim, padding]
-        pipeline    : [flip, trim, padding]
+        pipeline    : [flip, trim, padding, resize]
     feature:
         # extraction  [orb, sift, surf]
         extraction  : surf
