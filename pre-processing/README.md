@@ -15,21 +15,20 @@ $ python preprocessing.py -c dreamCh -d pilot -m /home/yumihwan/workspace/data/D
 
 ### Result 
 ```
-Root
-|- *.sh
-|- *.py
-|- trainingData
-|- testData
+/
+|- trainingData (read-only)
+|- testData     (read-only)
 |- preprocessedData
     |- pilot
-        |- ...
-    |- trainingData
+        |- metadata.tsv
         |- <patient_id>
             |- <exam_idx>
-                |- meta.tsv
-                |- <view>
-                    |- <laterality>
-                        |- *.png
-|- testData
-|- ...
+                |- <laterality>
+                    |- <view.png
+    |- trainingData
+        |- metadata.tsv
+        |- <patient_id>
+            |- <exam_idx>
+                |- <laterality>
+                    |- <view.png
 ```
