@@ -1,16 +1,35 @@
 ## Arguments
 
-| arg name      | arg flag | valid values               | required | description                                                                                        |   |
-|---------------|----------|----------------------------|----------|----------------------------------------------------------------------------------------------------|---|
-| `--corpus`    | `-c`     | [ `InBreast`, `dreamCh` ]  | True     | pass the corpus name which will be used in preprocessing                                           |   |
-| `--dataset`   | `-d`     | [`pilot`, `train`, `test`] | True     | pass the dataset name which will be used in preprocessing                                          |   |
-| `--metadata`  | `-m`     | any String                 | False    | pass the metadata directory, if not, will use dicom files in dataset directory to build image data |   |
-| `--processor` | `-p`     | any Integer                | False    | how may use processores, if not, will use `machine_cpu_cnt -1`                                     |   |
+| arg name      | arg flag | valid values               | required |
+|---------------|----------|----------------------------|----------|
+| `--corpus`    | `-c`     | [ `InBreast`, `dreamCh` ]  | True     |
+| `--dataset`   | `-d`     | [`pilot`, `train`, `test`] | True     |
+| `--processor` | `-p`     | any Integer                | False    |
 
 ### Example
 ```Shell
-$ python preprocessing.py -c dreamCh -d pilot -m /home/yumihwan/workspace/data/DreamChallenge_mammo/dataset/pilot_metadata/ -p 3
+$ python preprocessing.py -c dreamCh -d pilot  -p 3
 ```
+
+Determine the dataset path from configuration based on arguments
+
+__Configuration__ (`./config/preprocessing.yaml)
+```yaml
+data:
+  dreamCh:
+    pilot: /pilot
+    train: /trainingData
+    test:  /testData
+    metadata:
+      dir: /metadata
+      exams_metadata: exams_metadata.tsv
+      images_crosswalk: images_crosswalk.tsv
+    ...
+
+resultDir: /preprocessedData
+...
+```
+Example execution command means that program will use  dataset in config[data][dreamCh][pilot]
 
 
 ### Result 
@@ -19,16 +38,17 @@ $ python preprocessing.py -c dreamCh -d pilot -m /home/yumihwan/workspace/data/D
 |- trainingData (read-only)
 |- testData     (read-only)
 |- preprocessedData
-    |- pilot
-        |- metadata.tsv
-        |- <patient_id>
-            |- <exam_idx>
-                |- <laterality>
-                    |- <view.png
-    |- trainingData
-        |- metadata.tsv
-        |- <patient_id>
-            |- <exam_idx>
-                |- <laterality>
-                    |- <view.png
+    |- dreamCh
+        |- pilot
+            |- metadata.tsv
+            |- <patient_id>
+                |- <exam_idx>
+                    |- <laterality>
+                        |- <view.png
+        |- trainingData
+            |- metadata.tsv
+            |- <patient_id>
+                |- <exam_idx>
+                    |- <laterality>
+                        |- <view.png
 ```
