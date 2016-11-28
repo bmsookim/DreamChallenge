@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 import cv2
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 
 methods = {
     'orb' : None,
@@ -76,6 +76,7 @@ def flann(img1, img2, method='sift'):
 """
 Draw Matching Result
 """
+"""
 def draw(img1, img2, features, matches, matchesMask=None):
     (kp1, kp2, des1, des2) = features
 
@@ -89,3 +90,4 @@ def draw(img1, img2, features, matches, matchesMask=None):
         img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches[:10], None, flags=2)
 
     plt.imshow(img3,),plt.show()
+"""

@@ -7,7 +7,6 @@ logger.info('a')
 import sys
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
 
 """
 image I/O func.
