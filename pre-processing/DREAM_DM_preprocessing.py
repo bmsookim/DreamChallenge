@@ -217,7 +217,8 @@ class App(object):
         meta_f.close()
 
     def preprocessing_dcm(self, dcm, (v,l), target_dir, proc_num=0):
-        img = Preprocessor.dcm2cvimg(dcm, proc_num=proc_num)
+        color_map = self.config['preprocessing']['colormap']
+        img = Preprocessor.dcm2cvimg(dcm, color_map, proc_num)
 
         # execute pipeline methods by configuration
         for method in self.config['preprocessing']['modify']['pipeline']:
