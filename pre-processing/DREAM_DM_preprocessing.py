@@ -114,6 +114,7 @@ class App(object):
             next(f, None)
             walker = csv.reader(f, delimiter='\t')
             for row in walker:
+                print(row)
                 (p_id, exam_idx, img_idx, v, l, fname, cancer) = row
 
                 if (p_id, exam_idx) not in p_dict:

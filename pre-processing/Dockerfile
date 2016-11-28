@@ -3,18 +3,13 @@ MAINTAINER Minhwan Yu <minhwan90@gmail.com>
 
 RUN apt-get update && apt-get install -y \
     curl && \
-    rm -rf /var/lib/apt/lists/
-
-RUN apt-get update && \
+    rm -rf /var/lib/apt/lists/ && \
+    apt-get update && \
     apt-get install build-essential cmake git pkg-config -y && \
     apt-get install libjpeg8-dev libtiff4-dev libjasper-dev libpng12-dev -y && \
     apt-get install libgtk2.0-dev -y && \
     apt-get install python2.7-dev -y
 
-
-# install cuDNN
-ENV CUDNN_VERSION 5
-LABEL com.nvidia.cudnn.version="5"
 RUN \
     CUDNN_DOWNLOAD_SUM=a87cb2df2e5e7cc0a05e266734e679ee1a2fadad6f06af82a76ed81a23b102c8 && \
     curl -fsSL http://developer.download.nvidia.com/compute/redist/cudnn/v5.1/cudnn-8.0-linux-x64-v5.1.tgz -O && \
@@ -26,23 +21,9 @@ RUN \
 # install tensorflow
 RUN \
     apt-get install python-pip -y && \
-    pip install --upgrade pip
-
-RUN \
+    pip install --upgrade pip && \
     export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.11.0-cp27-none-linux_x86_64.whl && \
     pip install --upgrade $TF_BINARY_URL
-
-
-# download opencv, opencv_contrib from git
-RUN \ 
-    cd ~ && \
-    git clone https://github.com/Itseez/opencv.git && \
-    cd opencv && \
-    git checkout 3.0.0 && \
-    cd ~ && \
-    git clone https://github.com/Itseez/opencv_contrib.git && \
-    cd opencv_contrib && \
-    git checkout 3.0.0
 
 # update environment variables
 RUN \
@@ -52,6 +33,14 @@ RUN \
 
 # install opencv
 RUN \
+    cd ~ && \
+    git clone https://github.com/Itseez/opencv.git && \
+    cd opencv && \
+    git checkout 3.0.0 && \
+    cd ~ && \
+    git clone https://github.com/Itseez/opencv_contrib.git && \
+    cd opencv_contrib && \
+    git checkout 3.0.0 && \
     cd /root/opencv && \
     mkdir build && \
     cd build && \
@@ -60,21 +49,20 @@ RUN \
         -D INSTALL_C_EXAMPLES=ON \
         -D INSTALL_PYTHON_EXAMPLES=ON \
         -D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib/modules \
-        -D BUILD_EXAMPLES=ON ..
-
-# assign compiled opencv to python packages
-RUN \
+        -D BUILD_EXAMPLES=ON .. && \
     cd ~/opencv/build && \
     make -j $(nproc) && \
     make install && \
     /bin/bash -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf' && \
     ldconfig && \
     echo  'export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig' >> ~/.bashrc && \
-    cp ~/opencv/build/lib/cv2.so /usr/local/lib/python2.7/dist-packages/
+    cp ~/opencv/build/lib/cv2.so /usr/local/lib/python2.7/dist-packages/ && \
+    rm -rf ~/opencv && \
+    rm -rf ~/opencv_contrib
 
 ARG CACHEBUST=0
 WORKDIR / 
-COPY requirements.txt DREAM_DM_preprocessing.py util.py preprocess.sh ./
+COPY requirements.txt DREAM_DM_preprocessing.py util.py train.sh ./
 RUN pip install -r requirements.txt
 COPY Preprocessor ./Preprocessor
 COPY config ./config
