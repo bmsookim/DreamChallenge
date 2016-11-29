@@ -4,7 +4,7 @@
 
 # dataset specification configuration
 dataset = 'dream_challenge'
-data_dir = '/preprocessedData/dreamCh/pilot/'
+data_dir = '../preprocessedData_resized_1024/dreamCh/pilot/'
 
 # image specification configuration
 w, h = 1024, 1024
