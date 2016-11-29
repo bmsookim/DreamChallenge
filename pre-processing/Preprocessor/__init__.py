@@ -7,26 +7,24 @@ logger.info('a')
 import sys
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
 
 """
 image I/O func.
 """
-def dcm2cvimg(dcm, proc_num=0):
-    """
-    tmp_img_path = 'tmp/tmp'+str(proc_num) + '.png'
-
-    #TODO: imporve performance (no writing tmp image)
-    plt.imshow(dcm.pixel_array, cmap=plt.cm.bone)
-    plt.axis('off')
-    plt.savefig(tmp_img_path, bbox_inches="tight", pad_inches=0)
-    plt.clf()
-
-    img = cv2.imread(tmp_img_path)
-    """
-
+def dcm2cvimg(dcm, color_map='GRAY', proc_num=0):
     arr = dcm.pixel_array
     img = cv2.convertScaleAbs(arr, alpha=(255.0/arr.max(axis=1).max(axis=0)))
+
+    try:
+        color_map_flag = getattr(cv2, 'COLORMAP_' + color_map)
+    except:
+        if color_map == 'GRAY':
+            color_map_flag = -1
+        else:
+            logger.error('Invalid cv2 color_map: {0}'.format(color_map))
+            sys.exit(-1)
+    if color_map_flag > 0:
+        img = cv2.applyColorMap(img, color_map_flag)
 
     return img
 

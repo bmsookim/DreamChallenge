@@ -57,77 +57,59 @@ class App(object):
                 sys.exit(-1)
 
     """
-    Build Image Data from dicom files or metadata file
+    Build Image and Exam  Data from dicom files or metadata file
     """
-    def build_image_data(self):
+    def build_metadata(self):
         logger.info('load dcm file list in {0}'.format(self.data_dir))
 
-        """
-        if not self.args.metadata:
-            return self.__build_image_data_from_dicom()
-        else:
-            return self.__build_image_data_from_metadata()
-        """
-        return self.__build_image_data_from_metadata()
+        return (self.__build_image_data_from_metadata(),
+                self.__build_exams_data_from_metadata())
 
-    def __build_image_data_from_dicom(self):
-        logger.error('This method is deprecated: {0}'.format('__build_image_data_from_dicom'))
-        sys.exit(-1)
-        logger.info('build patient dicom dict')
-
-        """
-        dcm_file_paths = list()
-        for dcm_file_path in glob.glob('/'.join([self.data_dir, '*.dcm'])):
-            dcm_file_paths.append(dcm_file_path)
-
-        # pid: patient id
-        # d  : direction [L | R]
-        # v  : view [CC | MLO | ..]
-        patient_dict = dict()
-        for dcm_file_path in dcm_file_paths:
-            dcm = dicom.read_file(dcm_file_path)
-            pid = dcm.PatientID
-            (l, v) = dcm.SeriesDescription.split(' ', 1)
-
-            if pid not in patient_dict:
-                patient_dict[pid] = dict()
-            if v not in patient_dict[pid]:
-                patient_dict[pid][v] = dict()
-
-            patient_dict[pid][v][l] = dcm_file_path
-
-        return patient_dict
-        """
 
     def __build_image_data_from_metadata(self):
         logger.info('build image data from metadata')
 
 
-        config_metadata = self.config['data'][self.args.corpus]
+        config_metadata = self.config['data'][self.args.corpus]['metadata']
         cross_walk_file_path = '/'.join([
-            config_metadata['metadata']['dir'],
-            config_metadata['metadata']['images_crosswalk']
+            config_metadata['dir'],
+            config_metadata['images_crosswalk']
             ])
 
-        p_dict = dict()
+        s_dict = dict()
         with open(cross_walk_file_path, 'rt') as f:
-            next(f, None)
-            walker = csv.reader(f, delimiter='\t')
+            walker = csv.DictReader(f, delimiter='\t')
             for row in walker:
-                (p_id, exam_idx, img_idx, v, l, fname, cancer) = row
+                k = (row['subjectId'], row['examIndex'])
 
-                if (p_id, exam_idx) not in p_dict:
-                    p_dict[(p_id, exam_idx)] = dict()
-                if v not in p_dict[(p_id, exam_idx)]:
-                    p_dict[(p_id, exam_idx)][v] = dict()
+                if k not in s_dict:
+                    s_dict[k] = dict()
+                if row['view'] not in s_dict[k]:
+                    s_dict[k][row['view']] = dict()
 
-                p_dict[(p_id, exam_idx)][v][l] = {
-                        'img_idx': img_idx,
-                        'fname' : fname,
-                        'cancer': cancer
+                s_dict[k][row['view']][row['laterality']] = {
+                    'img_idx': row['imageIndex'],
+                    'fname'  : row['filename']
                 }
 
-        return p_dict
+        return s_dict
+
+    def __build_exams_data_from_metadata(self):
+        config_metadata = self.config['data'][self.args.corpus]['metadata']
+        exams_file_path = '/'.join([
+            config_metadata['dir'],
+            config_metadata['exams_metadata']
+            ])
+
+        e_dict = dict()
+        with open(exams_file_path, 'rt') as f:
+            walker = csv.DictReader(f, delimiter='\t')
+            for row in walker:
+                k = (row['subjectId'], row['examIndex'])
+
+                e_dict[k] = row
+
+        return e_dict
 
     """
     Preprocessing Main Pipeline (end-point)
@@ -149,23 +131,23 @@ class App(object):
         util.mkdir(tmp_dir)
 
         # find patient pair
-        patient_dict = self.build_image_data()
+        s_dict, self.e_dict = self.build_metadata()
 
-        logger.debug('split patient_dict start')
+        logger.debug('split subject_dict start')
         if self.proc_cnt == 1:
-            proc_feeds = [patient_dict]
+            proc_feeds = [s_dict]
         else:
             # TODO:round? floor?
-            feed_size = int(len(patient_dict) / self.proc_cnt) + 1
-            proc_feeds = util.split_dict(patient_dict, feed_size)
-        logger.debug('split patient_dict finish')
+            feed_size = int(len(s_dict) / self.proc_cnt) + 1
+            proc_feeds = util.split_dict(s_dict, feed_size)
+        logger.debug('split subject_dict finish')
 
         procs = list()
         for proc_num in range(self.proc_cnt):
             proc_feed = proc_feeds[proc_num]
 
             proc = multiprocessing.Process(target=self.preprocessing_single_proc,
-                    args=(proc_feed,self.data_dir, target_dir, tmp_dir, proc_num))
+                    args=(proc_feed, self.data_dir, target_dir, tmp_dir, proc_num))
 
             procs.append(proc)
             proc.start()
@@ -180,44 +162,47 @@ class App(object):
             metadata_f.write(metadata_tmp_f.read())
         metadata_f.close()
 
-    def preprocessing_single_proc(self, p_dict, source_dir, target_dir, tmp_dir, proc_num=0):
+    def preprocessing_single_proc(self, s_dict, source_dir, target_dir, tmp_dir, proc_num=0):
         logger.info('Proc{proc_num} start'.format(proc_num = proc_num))
         start = timer()
 
         meta_f = open('/'.join([tmp_dir, 'metadata_' + str(proc_num) + '.tsv']),'w')
-        cnt=0
-        for (p_id, exam_idx) in p_dict.keys():
-            k = (p_id, exam_idx)
+        cnt = 0
+        for (s_id, exam_idx) in s_dict.keys():
+            k = (s_id, exam_idx)
 
-            logger.debug('Proc{proc_num} : Preprocessing... {p_id} --> {target_dir}'.format(
+            logger.debug('Proc{proc_num} : Preprocessing... {s_id} --> {target_dir}'.format(
                 proc_num = proc_num,
-                p_id = p_id,
+                s_id = s_id,
                 target_dir = target_dir))
 
-            dicom_dict = p_dict[k]
-            img_target_dir = '/'.join([target_dir, p_id, exam_idx])
+            dicom_dict = s_dict[k]
+            img_target_dir = '/'.join([target_dir, s_id, exam_idx])
             for v in dicom_dict.keys():
                 for l in dicom_dict[v].keys():
                     info = dicom_dict[v][l]
                     filename = info['fname']
                     dcm = dicom.read_file('/'.join([source_dir, info['fname']]))
 
+                    # run image preprocessing and save result
                     self.preprocessing_dcm(dcm, (v,l), img_target_dir, proc_num)
 
-                    meta_f.write('\t'.join([p_id, exam_idx, v, l, info['cancer']]))
+                    exams = self.e_dict[k]
+                    meta_f.write('\t'.join([s_id, exam_idx, v, l, exams['cancer' + l]]))
                     meta_f.write('\n')
-                    cnt+=1
+            cnt+=1
 
         logger.info('Proc{proc_num} Finish : size[{p_size}]\telapsed[{elapsed_time}]'.format(
             proc_num = proc_num,
-            p_size = len(p_dict),
+            p_size = len(s_dict),
             elapsed_time = timer() - start
             ))
         print("{0} - {1}".format(proc_num, cnt))
         meta_f.close()
 
     def preprocessing_dcm(self, dcm, (v,l), target_dir, proc_num=0):
-        img = Preprocessor.dcm2cvimg(dcm, proc_num=proc_num)
+        color_map = self.config['preprocessing']['colormap']
+        img = Preprocessor.dcm2cvimg(dcm, color_map, proc_num)
 
         # execute pipeline methods by configuration
         for method in self.config['preprocessing']['modify']['pipeline']:

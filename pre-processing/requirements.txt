@@ -1,0 +1,2 @@
+pydicom==0.9.9
+PyYAML==3.12
