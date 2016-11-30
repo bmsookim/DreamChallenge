@@ -29,10 +29,10 @@ local function createModel(opt)
    local iChannels
    local blocks = {}
 
-   local function wide_basic(nInputPlane, nOutputPlane, filter, stride)
+   local function wide_basic(nInputPlane, nOutputPlane, stride)
       local conv_params = {
-         {filter,filter,stride,stride,math.floor(filter/2),math.floor(filter/2)},
-         {filter,filter,1,1,math.floor(filter/2),math.floor(filter/2)},
+         {3,3,stride,stride,1,1},
+         {3,3,1,1,1,1},
       }
       local nBottleneckPlane = nOutputPlane
 
@@ -65,12 +65,12 @@ local function createModel(opt)
    end
 
    -- Creates count residual blocks with specified number of features
-   local function wide_layer(block, nInputPlane, nOutputPlane, count, filter, stride)
+   local function wide_layer(block, nInputPlane, nOutputPlane, count, stride)
       local s = nn.Sequential()
 
-      s:add(block(nInputPlane, nOutputPlane, filter, stride))
+      s:add(block(nInputPlane, nOutputPlane, stride))
       for i=2,count do
-         s:add(block(nOutputPlane, nOutputPlane, filter, 1))
+         s:add(block(nOutputPlane, nOutputPlane, 1))
       end
       return s
    end
@@ -83,20 +83,22 @@ local function createModel(opt)
       local n = (depth-4)/6
       local k = opt.widen_factor
       print(' | Wide-ResNet-' .. depth .. 'x' .. k .. ' ImageNet')
-      local nStages = torch.Tensor{16, 32, 64, 32*k, 64*k, 128*k}
+      local nStages = torch.Tensor{16, 32, 32*k, 64*k, 128*k}
 
       -- The ResNet ImageNet model
       model:add(Convolution(3,nStages[1],7,7,2,2,3,3)) -- 256 x 256
-      model:add(wide_layer(wide_basic, nStages[1], nStages[2], n, 5, 2)) -- 128 x 128
-      model:add(wide_layer(wide_basic, nStages[2], nStages[3], n, 3, 2)) -- 64 x 64
-      model:add(wide_layer(wide_basic, nStages[3], nStages[4], n, 3, 2)) -- 32 x 32
-      model:add(wide_layer(wide_basic, nStages[4], nStages[5], n, 3, 2)) -- 16 x 16
-      model:add(wide_layer(wide_basic, nStages[5], nStages[6], n, 3, 2)) -- 8 x 8
-      model:add(SBatchNorm(nStages[6]))
-      model:add(ReLU(nStages[6]))
+      model:add(SBatchNorm(nStages[1]))
+      model:add(ReLU(nStages[1]))
+      model:add(Max(3,3,2,2,1,1))
+      model:add(Convolution(nStages[1],nStages[2],7,7,2,2,3,3)) -- 64 x 64
+      model:add(wide_layer(wide_basic, nStages[2], nStages[3], n, 2)) -- 32 x 32
+      model:add(wide_layer(wide_basic, nStages[3], nStages[4], n, 2)) -- 16 x 16
+      model:add(wide_layer(wide_basic, nStages[4], nStages[5], n, 2)) -- 8 x 8
+      model:add(SBatchNorm(nStages[5]))
+      model:add(ReLU(nStages[5]))
       model:add(Avg(8, 8, 1, 1))
-      model:add(nn.View(nStages[6]):setNumInputDims(3))
-      model:add(nn.Linear(nStages[6], 2))
+      model:add(nn.View(nStages[5]):setNumInputDims(3))
+      model:add(nn.Linear(nStages[5], 2))
    else
       error('invalid dataset: ' .. opt.dataset)
    end
