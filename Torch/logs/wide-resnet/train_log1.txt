@@ -1,8 +1,0 @@
-=> Creating model from file: networks/wide-resnet.lua	
- | Wide-ResNet-28x10 ImageNet	
-warning: could not load nccl, falling back to default communication	
-=> Training epoch # 1	
- | [#  1][100/719]    Time 0.611  Loss 1.0615  Top1  37.500%	
- | [#  1][200/719]    Time 0.599  Loss 0.7647  Top1  59.375%	
- | [#  1][300/719]    Time 0.598  Loss 0.6340  Top1  59.375%	
- | [#  1][400/719]    Time 0.600  Loss 0.6658  Top1  62.500%	
