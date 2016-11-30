@@ -3,7 +3,8 @@ trainingData
 preprocessedData
 testData
 .ipynb_checkpoints
-
+Torch/preprocessedData
+Torch/modelState/dreamChallenge
 
 # Created by https://www.gitignore.io/api/python,sublimetext,pycharm
 
