@@ -89,7 +89,7 @@ local function createModel(opt)
       model:add(SBatchNorm(nStages[1]))
       model:add(ReLU(nStages[1]))
       model:add(Max(3,3,2,2,1,1)) -- 128 x 128
-      model:add(Convolution(nStages[1],nStages[2],5,5,2,2,2,2)) -- 64 x 64
+      model:add(Convolution(nStages[1],nStages[2],7,7,2,2,3,3)) -- 64 x 64
       model:add(wide_layer(wide_basic, nStages[2], nStages[3], n, 2)) -- 32 x 32
       model:add(wide_layer(wide_basic, nStages[3], nStages[4], n, 2)) -- 16 x 16
       model:add(wide_layer(wide_basic, nStages[4], nStages[5], n, 2)) -- 8 x 8
