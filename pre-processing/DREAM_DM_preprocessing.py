@@ -177,7 +177,6 @@ class App(object):
                 target_dir = target_dir))
 
             dicom_dict = s_dict[k]
-            img_target_dir = '/'.join([target_dir, s_id, exam_idx])
             for v in dicom_dict.keys():
                 for l in dicom_dict[v].keys():
                     info = dicom_dict[v][l]
@@ -185,9 +184,16 @@ class App(object):
                     dcm = dicom.read_file('/'.join([source_dir, info['fname']]))
 
                     # run image preprocessing and save result
-                    self.preprocessing_dcm(dcm, (v,l), img_target_dir, proc_num)
-
+                    img = self.preprocessing_dcm(dcm, l, proc_num)
                     exams = self.e_dict[k]
+
+                    self.write_img(img, exams, {
+                        's_id': s_id,
+                        'exam_idx': exam_idx,
+                        'v': v,
+                        'l': l
+                        }, target_dir)
+
                     meta_f.write('\t'.join([s_id, exam_idx, v, l, exams['cancer' + l]]))
                     meta_f.write('\n')
             cnt+=1
@@ -200,9 +206,9 @@ class App(object):
         print("{0} - {1}".format(proc_num, cnt))
         meta_f.close()
 
-    def preprocessing_dcm(self, dcm, (v,l), target_dir, proc_num=0):
-        color_map = self.config['preprocessing']['colormap']
-        img = Preprocessor.dcm2cvimg(dcm, color_map, proc_num)
+    def preprocessing_dcm(self, dcm, l, proc_num=0):
+        logger.debug('start: {method}'.format(method='handle dcm'))
+        img = Preprocessor.dcm2cvimg(dcm, proc_num)
 
         # execute pipeline methods by configuration
         for method in self.config['preprocessing']['modify']['pipeline']:
@@ -211,13 +217,23 @@ class App(object):
             img = getattr(Preprocessor, method)(img)
             logger.debug('end  : {method}'.format(method=method))
 
-        # save preprocessed dcm image
-        logger.debug('start: {method}'.format(method='write'))
-        img_dir = '/'.join([target_dir, l])
-        util.mkdir(img_dir)
-        Preprocessor.write_img('/'.join([img_dir, v + '.png']), img)
-        logger.debug('end  : {method}'.format(method='write'))
+        return img
 
+    def write_img(self, img, exams, meta, target_dir):
+        if self.args.form == 'class':
+            cancer_label = exams['cancer' + meta['l']]
+            img_dir = '/'.join([target_dir, cancer_label])
+            util.mkdir(img_dir)
+            Preprocessor.write_img('/'.join([img_dir, meta['s_id'] + '_' + meta['exam_idx']  + '.png']), img)
+        elif self.args.form == 'robust':
+            img_dir = '/'.join([target_dir, meta['s_id'], meta['exam_idx'], meta['l']])
+            util.mkdir(img_dir)
+            Preprocessor.write_img('/'.join([img_dir, v + '.png']), img)
+        else:
+            logger.error('invalid form: {form}'.format(form=self.args.form))
+            sys.exit(-1)
+
+    """
     def alignment_both(self, l_img, r_img):
         # feature extraction & matching
         features, matches, masks = matcher.flann(l_img, r_img)
@@ -229,6 +245,7 @@ class App(object):
     def extract_roi(self, img):
         # from hwejin
         pass
+    """
 
     def display_setups(self):
         # TODO:
@@ -255,10 +272,9 @@ if __name__ == '__main__':
             type=int,
             required=False,
             help='how many use processores')
-    parser.add_argument('-v', '--valid',
-            type=int,
-            required=False,
-            help='force to create valid set from training set')
+    parser.add_argument('-f', '--form',
+            required=True,
+            help='class, robust')
 
     args = parser.parse_args()
 
