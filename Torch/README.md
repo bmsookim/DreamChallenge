@@ -19,11 +19,21 @@ luarocks install optnet
 | GTX 1080   | 2       | 372.20         | server |
 
 ## Directories and datasets
-- checkpoints : The optimal stages and models will be saved in this directory.
+- modelState : The optimal stages and models will be saved in this directory.
 - datasets : data generation & preprocessing codes are contained.
-- models : directory that contains resnet structure file.
-- gen : directory where generated datasets are saved in.
+- networks : directory that contains resnet structure file.
 - scripts : directory where scripts for each datasets are contained.
+- preprocessedData : we assume that this directory contains the data in the format below.
+```bash
+preprocessedData
+| train
+  | class 0
+  | class 1
+| val
+  | class 0
+  | class 1
+
+```
 
 ## How to run
 You can run each dataset which could be either cifar10, cifar100, imagenet, catdog by running the script below.
