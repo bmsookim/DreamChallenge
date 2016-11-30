@@ -11,20 +11,9 @@ import cv2
 """
 image I/O func.
 """
-def dcm2cvimg(dcm, color_map='GRAY', proc_num=0):
+def dcm2cvimg(dcm, proc_num=0):
     arr = dcm.pixel_array
     img = cv2.convertScaleAbs(arr, alpha=(255.0/arr.max(axis=1).max(axis=0)))
-
-    try:
-        color_map_flag = getattr(cv2, 'COLORMAP_' + color_map)
-    except:
-        if color_map == 'GRAY':
-            color_map_flag = -1
-        else:
-            logger.error('Invalid cv2 color_map: {0}'.format(color_map))
-            sys.exit(-1)
-    if color_map_flag > 0:
-        img = cv2.applyColorMap(img, color_map_flag)
 
     return img
 
@@ -78,3 +67,9 @@ def padding(img):
         empty[i + max_size - len(img)][max_size - len(img[0]):] = img[i]
 
     return empty
+
+def colormap(img, color_map='BONE'):
+    color_map_flag = getattr(cv2, 'COLORMAP_' + color_map)
+    img = cv2.applyColorMap(img, color_map_flag)
+
+    return img

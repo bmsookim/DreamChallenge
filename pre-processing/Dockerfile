@@ -62,4 +62,7 @@ RUN \
 
 ARG CACHEBUST=0
 WORKDIR / 
-COPY train.sh ./
+COPY requirements.txt DREAM_DM_preprocessing.py util.py preprocess.sh ./
+RUN pip install -r requirements.txt
+COPY Preprocessor ./Preprocessor
+COPY config ./config
