@@ -6,8 +6,6 @@ export experiment_number=1
 mkdir -p $save
 mkdir -p modelState
 
-rm -rf modelState/gen/dreamChallenge.t7
-
 th main.lua \
 -dataset ${dataset} \
 -data ${data} \
