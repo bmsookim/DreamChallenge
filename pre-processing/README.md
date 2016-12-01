@@ -56,7 +56,7 @@ logDir   : <log directory (info, error)>
 
 Preprocessing pipeline follows configuration. It means that you can easily modify pipeline with editing configuration file (`config/preprocessing.yaml`)
 
-- read *.dcm file list and metadata 
+- read *.dcm file list and metadata     
     `DREAM_DM_preprocessing.build_metadata`
     - read *.dcm file list  
     `DREAM_DM_preprocessing.__build_image_data_from_metadata`
@@ -102,6 +102,7 @@ __`-m robust`__
 ```
 
 __`-m class`__
+```
 /
 |- trainingData (read-only)
 |- preprocessedData
@@ -112,3 +113,4 @@ __`-m class`__
                 |- *.png
             |- 1
                 |- *.png
+```
