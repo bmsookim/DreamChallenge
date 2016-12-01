@@ -224,7 +224,8 @@ class App(object):
             cancer_label = exams['cancer' + meta['l']]
             img_dir = '/'.join([target_dir, cancer_label])
             util.mkdir(img_dir)
-            Preprocessor.write_img('/'.join([img_dir, meta['s_id'] + '_' + meta['exam_idx']  + '.png']), img)
+            Preprocessor.write_img('/'.join([img_dir,
+                '_'.join([meta['s_id'], meta['exam_idx'], meta['v'], meta['l']])  + '.png']), img)
         elif self.args.form == 'robust':
             img_dir = '/'.join([target_dir, meta['s_id'], meta['exam_idx'], meta['l']])
             util.mkdir(img_dir)
@@ -233,7 +234,6 @@ class App(object):
             logger.error('invalid form: {form}'.format(form=self.args.form))
             sys.exit(-1)
 
-    """
     def alignment_both(self, l_img, r_img):
         # feature extraction & matching
         features, matches, masks = matcher.flann(l_img, r_img)
@@ -245,7 +245,6 @@ class App(object):
     def extract_roi(self, img):
         # from hwejin
         pass
-    """
 
     def display_setups(self):
         # TODO:

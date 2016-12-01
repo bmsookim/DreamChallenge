@@ -1,42 +1,76 @@
-## Arguments
+# Dependencies
+
+* pydicom `0.9.9`
+* PyYAML `3.12`
+
+
+# Execution
 
 | arg name      | arg flag | valid values               | required |
 |---------------|----------|----------------------------|----------|
 | `--corpus`    | `-c`     | [ `InBreast`, `dreamCh` ]  | True     |
 | `--dataset`   | `-d`     | [`pilot`, `train`, `test`] | True     |
+| `--format`    | `-f`     | [`class`, `robust`]        | True     |
 | `--processor` | `-p`     | any Integer                | False    |
 
 ### Example
 ```Shell
-$ python preprocessing.py -c dreamCh -d pilot  -p 3
+$ python DREAM_DM_preprocessing.py -c dreamCh -d train -f class
 ```
+means that program will use  dataset in config[data][dreamCh][pilot]
 
-Determine the dataset path from configuration based on arguments
+# Configuration
 
-__Configuration__ (`./config/preprocessing.yaml)
+You can see the example of configuration in `config/preprocessing.yaml'.
+
 ```yaml
-data:
-  dreamCh:
-    pilot: /pilot
-    train: /trainingData
-    test:  /testData
-    metadata:
-      dir: /metadata
-      exams_metadata: exams_metadata.tsv
-      images_crosswalk: images_crosswalk.tsv
-    ...
+data
+    #<corpus>
+        #<dataset>
+        metadata
+            dir: #<root dir>
+            images_crosswalk: images_crosswalk.tsv
+            exams_metadata  : exams_metadata.tsv
 
-resultDir: /preprocessedData
-...
+preprocessing
+    pipeline: [modify, feature, adjust]
+    modify  :
+        # [resize, flip, trim, padding, colormap(bone)]
+        pipeline: [resize, flip, trim, padding, colormap]
+    feature:
+        # extraction  [orb, sift, surf]
+        extraction  : surf
+        # matchin:    [brute_force, flann]
+        matching    : flann
+        # alignment
+        alignment   : pass
+    adjust:
+        rule        : pass
+        algo        : pass
+
+resultDir: <result directory>
+logDir   : <log directory (info, error)>
 ```
-Example execution command means that program will use  dataset in config[data][dreamCh][pilot]
 
+# Pipeline
 
-### Result 
+Preprocessing pipeline follows configuration. It means that you can easily modify pipeline with editing configuration file `config/preprocessing.yaml`
+
+- read *.dcm file list and metadata 
+    `DREAM_DM_preprocessing.build_metadata`
+    - read *.dcm file list  
+    `DREAM_DM_preprocessing.__build_image_data_from_metadata`
+    - read meatadata and build subject/exam dict    
+    `DREAM_DM_preprocessing.__build_exams_data_from_metadata`
+- split dataset in the number of `proc_cnt`
+- 
+
+# Result 
+
+__`-m robust`__
 ```
 /
 |- trainingData (read-only)
-|- testData     (read-only)
 |- preprocessedData
     |- dreamCh
         |- pilot
@@ -44,11 +78,23 @@ Example execution command means that program will use  dataset in config[data][d
             |- <patient_id>
                 |- <exam_idx>
                     |- <laterality>
-                        |- <view.png
-        |- trainingData
+                        |- <view>.png
+        |- train
             |- metadata.tsv
             |- <patient_id>
                 |- <exam_idx>
                     |- <laterality>
-                        |- <view.png
+                        |- <view>.png
 ```
+
+__`-m class`__
+/
+|- trainingData (read-only)
+|- preprocessedData
+    |- dreamCh
+        |- train
+            |- metadata.tsv
+            |- 0
+                |- *.png
+            |- 1
+                |- *.png

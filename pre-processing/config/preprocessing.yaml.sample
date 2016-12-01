@@ -19,11 +19,14 @@ data:
 
 # Preprocessing pipeline & applied methods
 preprocessing:
-    pipeline    : [modify, feature, adjsut]
+    pipeline: [modify, feature, adjsut]
+
+    # cv2.COLORMAP_[GRAY, BONE]
 
     modify:
-        # method      [resize, flip, trim, padding]
-        pipeline    : [flip, trim, padding, resize]
+        # method  [resize, flip, trim, padding]
+        pipeline: [resize, flip, trim, padding, colormap]
+        
     feature:
         # extraction  [orb, sift, surf]
         extraction  : surf
