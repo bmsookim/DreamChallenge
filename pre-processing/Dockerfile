@@ -2,12 +2,43 @@ from nvidia/caffe
 
 RUN apt-get update && apt-get install -y \
     python-dev \
-    python-pip
+    python-pip \
+    git \
+    vim
 
 
 RUN pip install pydicom
-RUN apt-get install python-opencv
 
+ENV PATH=$PATH:/usr/local/cuda/bin
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64
+
+RUN git clone https://github.com/Itseez/opencv_contrib.git && \
+    cd opencv_contrib && \
+    git checkout 3.0.0
+
+RUN git clone https://github.com/Itseez/opencv.git
+WORKDIR /opencv
+RUN git checkout 3.0.0
+RUN mkdir build
+WORKDIR /opencv/build
+
+
+RUN apt-get install -y \
+    cmake \
+    build-essential
+RUN cmake -D CMAKE_BUILD_TYPE=RELEASE \
+        -D CMAKE_INSTALL_PREFIX=/usr/local \
+        -D INSTALL_C_EXAMPLES=ON \
+        -D INSTALL_PYTHON_EXAMPLES=ON \
+        -D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib/modules \
+        -D BUILD_EXAMPLES=ON ..
+RUN make -j $(nproc)
+
+RUN \
+    /bin/bash -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf' && \
+    ldconfig && \
+    echo  'export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig' >> ~/.bashrc && \
+    cp /opencv/build/lib/cv2.so /usr/local/lib/python2.7/dist-packages/
 
 
 ARG CACHEBUST=0
