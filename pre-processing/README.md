@@ -54,7 +54,7 @@ logDir   : <log directory (info, error)>
 
 # Pipeline
 
-Preprocessing pipeline follows configuration. It means that you can easily modify pipeline with editing configuration file `config/preprocessing.yaml`
+Preprocessing pipeline follows configuration. It means that you can easily modify pipeline with editing configuration file (`config/preprocessing.yaml`)
 
 - read *.dcm file list and metadata 
     `DREAM_DM_preprocessing.build_metadata`
@@ -63,7 +63,21 @@ Preprocessing pipeline follows configuration. It means that you can easily modif
     - read meatadata and build subject/exam dict    
     `DREAM_DM_preprocessing.__build_exams_data_from_metadata`
 - split dataset in the number of `proc_cnt`
-- 
+- execute multi-processing
+    - dicom file preprocessing  
+    `DREAM_DM_preprocessing.preprocessing_dcm`
+        - convert dicom file to `opencv` image  
+        `Preprocessor.dcm2cvimg`
+        - execute preprocessing pipelin
+            - execute modification process  
+            `Preprocessor.<method>`
+            - execute image alignment process   
+            `Preprocessor.<method>`
+            - execute adjusting process 
+            `Preprocessor.<method>`
+    - write image
+    - write metadata about current dicom file
+- merge all metadata written by each process
 
 # Result 
 
