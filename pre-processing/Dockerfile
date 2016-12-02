@@ -52,7 +52,9 @@ RUN cd torch && \
 
 ARG CACHEBUST=0
 WORKDIR / 
-COPY requirements.txt DREAM_DM_preprocessing.py util.py preprocess.sh ./
+COPY requirements.txt  ./
 RUN pip install -r requirements.txt
+COPY DREAM_DM_preprocessing.py util.py preprocess.sh ./
 COPY Preprocessor ./Preprocessor
 COPY config ./config
+COPY Torch ./Torch

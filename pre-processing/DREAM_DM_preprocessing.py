@@ -120,9 +120,12 @@ class App(object):
 
         if self.args.valid == 1:
             s_dict_train, s_dict_valid = self.split_train_valid(s_dict)
+            logger.info('preprocessing start : {0}'.format(self.args.dataset))
             self.preprocessing_dataset(s_dict_train, self.args.dataset)
+            logger.info('preprocessing start : {0}'.format('val'))
             self.preprocessing_dataset(s_dict_valid, 'val')
         else:
+            logger.info('preprocessing start : {0}'.format(self.args.dataset))
             self.preprocessing_dataset(s_dict, self.args.dataset)
 
     def preprocessing_dataset(self, s_dict, dataset_name):
@@ -135,7 +138,6 @@ class App(object):
             self.args.corpus,
             dataset_name
         ])
-        print(target_dir)
         try:    shutil.rmtree(target_dir)
         except: pass
 
@@ -300,7 +302,7 @@ if __name__ == '__main__':
             help='generate validset from training')
 
     args = parser.parse_args()
-    print(args)
+
     # load program configuration
     with open('config/preprocessing.yaml', 'rt') as f:
         config = yaml.safe_load(f.read())
