@@ -13,6 +13,7 @@ require 'nn'
 local DataLoader = require 'dataloader'
 local models = require 'networks/init'
 local Trainer = require 'train'
+local Tester = require 'test'
 local opts = require 'opts'
 local checkpoints = require 'checkpoints'
 
@@ -34,6 +35,12 @@ local trainLoader, valLoader = DataLoader.create(opt)
 
 -- The trainer handles the training loop and evaluation on validation set
 local trainer = Trainer(model, criterion, opt, optimState)
+local tester = Tester(model, criterion, opt, optimState)
+
+if opt.testPhase then
+   tester:test()
+   return
+end
 
 if opt.testOnly then
    local top1Err, top5Err = trainer:test(0, valLoader)
