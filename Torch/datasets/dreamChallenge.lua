@@ -3,8 +3,6 @@ local paths = require 'paths'
 local t = require 'datasets/transforms'
 local ffi = require 'ffi'
 
-local opts = require 'opts'
-local _opt = opts.parse(arg)
 local M = {}
 local ImagenetDataset = torch.class('resnet.ImagenetDataset', M)
 
@@ -71,7 +69,7 @@ local pca = {
 function ImagenetDataset:preprocess()
    if self.split == 'train' then
       return t.Compose{
-         t.RandomSizedCrop(_opt.imageSize),
+         t.RandomSizedCrop(self.opt.cropSize),
          t.ColorJitter({
             brightness = 0.4,
             contrast = 0.4,
@@ -84,9 +82,9 @@ function ImagenetDataset:preprocess()
    elseif self.split == 'val' then
       local Crop = self.opt.tenCrop and t.TenCrop or t.CenterCrop
       return t.Compose{
-         t.Scale(_opt.imageSize),
+         t.Scale(self.opt.imageSize),
          t.ColorNormalize(meanstd),
-         Crop(_opt.imageSize),
+         Crop(self.opt.cropSize),
       }
    else
       error('invalid split: ' .. self.split)
