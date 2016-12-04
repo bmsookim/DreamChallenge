@@ -1,1 +1,1 @@
-preprocessing=docker.synapse.org/syn7794493/dmis-mamo-preprocessing@sha256:052ea2cec480e50e1e30234d9634ad3e78fdf033cd06d9d0be0b02d8b1cc2051
+preprocessing=docker.synapse.org/syn7794493/dmis-mamo-preprocessing@sha256:c4a250fbbc31b9637877ba732411f16b3a9d62d9f2e01e4b23b1d10f267b7b14

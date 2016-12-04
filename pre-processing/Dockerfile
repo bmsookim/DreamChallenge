@@ -40,9 +40,6 @@ RUN \
     cp /opencv/build/lib/cv2.so /usr/local/lib/python2.7/dist-packages/
 
 WORKDIR /
-RUN \ 
-    rm -rf opencv && \
-    rm -rf opencv_contrib
 
 # install torch
 RUN git clone https://github.com/torch/distro.git /torch --recursive
@@ -52,7 +49,9 @@ RUN cd torch && \
 
 ARG CACHEBUST=0
 WORKDIR / 
-COPY requirements.txt DREAM_DM_preprocessing.py util.py preprocess.sh ./
+COPY requirements.txt  ./
 RUN pip install -r requirements.txt
+COPY DREAM_DM_preprocessing.py util.py preprocess.sh ./
 COPY Preprocessor ./Preprocessor
 COPY config ./config
+COPY Torch ./Torch
