@@ -114,3 +114,32 @@ __`-m class`__
             |- 1
                 |- *.png
 ```
+
+# Benchmark
+
+### Express-lane (1% dataset)
+```
+STDOUT: 2016-12-04 16:03:08,055 INFO   [DREAM_DM_preprocessing.py:219 -      preprocessing_single_proc()]  Proc32 Finish : size[13]   elapsed[6.71353411674]
+
+STDOUT: 2016-12-04 16:03:08,096 INFO   [DREAM_DM_preprocessing.py:219 -      preprocessing_single_proc()]  Proc29 Finish : size[13]   elapsed[6.76222395897]
+
+STDOUT: 2016-12-04 16:03:08,107 INFO   [DREAM_DM_preprocessing.py:219 -      preprocessing_single_proc()]  Proc36 Finish : size[13]   elapsed[6.74229621887]
+
+STDOUT: 2016-12-04 16:03:08,120 INFO   [DREAM_DM_preprocessing.py:219 -      preprocessing_single_proc()]  Proc13 Finish : size[13]   elapsed[6.83266806602]
+
+STDOUT: 2016-12-04 16:03:08,123 INFO   [DREAM_DM_preprocessing.py:219 -      preprocessing_single_proc()]  Proc12 Finish : size[13]   elapsed[6.83746790886]
+
+STDOUT: 2016-12-04 16:03:08,146 INFO   [DREAM_DM_preprocessing.py:219 -      preprocessing_single_proc()]  Proc40 Finish : size[13]   elapsed[6.76750802994]
+
+STDOUT: 2016-12-04 16:03:08,151 INFO   [DREAM_DM_preprocessing.py:219 -      preprocessing_single_proc()]  Proc2 Finish : size[13]   elapsed[6.87624406815]
+
+STDOUT: 2016-12-04 16:03:08,167 INFO   [DREAM_DM_preprocessing.py:219 -      preprocessing_single_proc()]  Proc1 Finish : size[13]   elapsed[6.89332699776]
+
+STDOUT: 2016-12-04 16:03:08,199 INFO   [DREAM_DM_preprocessing.py:219 -      preprocessing_single_proc()]  Proc43 Finish : size[13]   elapsed[6.81538200378]
+
+STDOUT: 2016-12-04 16:03:08,239 INFO   [DREAM_DM_preprocessing.py:219 -      preprocessing_single_proc()]  Proc23 Finish : size[13]   elapsed[6.92792916298]
+
+STDOUT: 2016-12-04 16:03:08,318 INFO   [DREAM_DM_preprocessing.py:219 -      preprocessing_single_proc()]  Proc18 Finish : size[13]   elapsed[7.0223069191]
+
+STDOUT: 2016-12-04 16:03:08,386 INFO   [DREAM_DM_preprocessing.py:219 -      preprocessing_single_proc()]  Proc10 Finish : size[13]   elapsed[7.10315489769]
+```
