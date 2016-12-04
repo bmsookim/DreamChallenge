@@ -54,7 +54,7 @@ def build_logger(default_path='config/logging.yaml',
                 mkdir(os.path.dirname(config['handlers'][handler]['filename']))
         logging.config.dictConfig(config)
     else:
-        logging.basicConfig(level=devault_level)
+        logging.basicConfig(level=default_level)
 
     return logging
 

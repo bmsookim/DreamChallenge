@@ -40,9 +40,6 @@ RUN \
     cp /opencv/build/lib/cv2.so /usr/local/lib/python2.7/dist-packages/
 
 WORKDIR /
-RUN \ 
-    rm -rf opencv && \
-    rm -rf opencv_contrib
 
 # install torch
 RUN git clone https://github.com/torch/distro.git /torch --recursive
