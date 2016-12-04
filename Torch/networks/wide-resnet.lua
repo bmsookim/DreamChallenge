@@ -83,20 +83,20 @@ local function createModel(opt)
       local n = (depth-4)/6
       local k = opt.widen_factor
       print(' | Wide-ResNet-' .. depth .. 'x' .. k .. ' ImageNet')
-      local nStages = torch.Tensor{16, 32, 32*k, 64*k, 128*k}
+      local nStages = torch.Tensor{16, 32, 64*k, 96*k, 128*k}
 
       -- The ResNet ImageNet model
-      model:add(Convolution(3,nStages[1],7,7,2,2,3,3)) -- 256 x 256
+      model:add(Convolution(3,nStages[1],7,7,2,2,3,3))                -- 512 x 512
       model:add(SBatchNorm(nStages[1]))
       model:add(ReLU(nStages[1]))
-      model:add(Max(3,3,2,2,1,1))
-      model:add(Convolution(nStages[1],nStages[2],7,7,2,2,3,3)) -- 64 x 64
-      model:add(wide_layer(wide_basic, nStages[2], nStages[3], n, 2)) -- 32 x 32
-      model:add(wide_layer(wide_basic, nStages[3], nStages[4], n, 2)) -- 16 x 16
-      model:add(wide_layer(wide_basic, nStages[4], nStages[5], n, 2)) -- 8 x 8
+      model:add(Max(3,3,2,2,1,1))                                     -- 256 x 256
+      model:add(Convolution(nStages[1],nStages[2],7,7,2,2,3,3))       -- 128 x 128
+      model:add(wide_layer(wide_basic, nStages[2], nStages[3], n, 2)) -- 64 x 64
+      model:add(wide_layer(wide_basic, nStages[3], nStages[4], n, 2)) -- 32 x 32
+      model:add(wide_layer(wide_basic, nStages[4], nStages[5], n, 2)) -- 16 x 16
       model:add(SBatchNorm(nStages[5]))
       model:add(ReLU(nStages[5]))
-      model:add(Avg(8, 8, 1, 1))
+      model:add(Avg(opt.featureMap, opt.featureMap, 1, 1))
       model:add(nn.View(nStages[5]):setNumInputDims(3))
       model:add(nn.Linear(nStages[5], 2))
    else

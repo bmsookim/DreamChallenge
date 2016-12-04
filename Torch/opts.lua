@@ -28,25 +28,27 @@ function M.parse(arg)
    ------------- Training options --------------------
    cmd:option('-nEpochs',         0,       'Number of total epochs to run')
    cmd:option('-epochNumber',     1,       'Manual epoch number (useful on restarts)')
-   cmd:option('-imageSize',       256,     'Width & Height of input image')
-   cmd:option('-cropSize',        224,     'Width & Height of cropped image')
+   cmd:option('-imageSize',       1024,     'Width & Height of input image')
+   cmd:option('-cropSize',        1024,     'Width & Height of cropped image')
+   cmd:option('-featureMap',      0,       'final attention map size')
    cmd:option('-batchSize',       32,      'mini-batch size (1 = pure stochastic)')
-   cmd:option('-display_iter',    100,     'display of training iteration')
+   cmd:option('-display_iter',    1,     'display of training iteration')
    cmd:option('-top5_display',    'false', 'display top5 accuracy')
    cmd:option('-testPhase',       'false', 'run on test phase scoring challenge')
    cmd:option('-testOnly',        'false', 'Run on validation set only')
    cmd:option('-tenCrop',         'false', 'Ten-crop testing')
    ------------- Checkpointing options ---------------
    cmd:option('-save',            'scratch', 'Directory in which to save checkpoints')
-   cmd:option('-resume',          '', 'Resume from the latest checkpoint in this directory')
+   cmd:option('-resume',          'scratch', 'Resume from the latest checkpoint in this directory')
+   cmd:option('-saveLatest',      'false',   'Resume from the latest checkpoint')
    ---------- Optimization options ----------------------
    cmd:option('-LR',              0.1,   'initial learning rate')
    cmd:option('-momentum',        0.9,   'momentum')
    cmd:option('-weightDecay',     1e-4,  'weight decay')
    ---------- Model options ----------------------------------
-   cmd:option('-netType',      'wide-resnet', 'Options: resnet | wide-resnet')
-   cmd:option('-depth',        28,       'ResNet depth: 6n+4', 'number')
-   cmd:option('-widen_factor', 10,       'Wide-Resnet width', 'number')
+   cmd:option('-netType',      'resnet', 'Options: resnet | wide-resnet')
+   cmd:option('-depth',        50,       'ResNet depth: 6n+4', 'number')
+   cmd:option('-widen_factor', 2,       'Wide-Resnet width', 'number')
    cmd:option('-dropout',      0,        'Dropout rate')
    cmd:option('-shortcutType', '',       'Options: A | B | C')
    cmd:option('-retrain',      'none',   'fine-tuning, Path to model to retrain with')
@@ -61,14 +63,16 @@ function M.parse(arg)
    local opt = cmd:parse(arg or {})
 
    opt.testOnly = opt.testOnly ~= 'false'
+   opt.saveLatest = opt.saveLatest ~= 'false'
    opt.tenCrop = opt.tenCrop ~= 'false'
    opt.shareGradInput = opt.shareGradInput ~= 'false'
    opt.optnet = opt.optnet ~= 'false'
    opt.resetClassifier = opt.resetClassifier ~= 'false'
    opt.top5_display = opt.top5_display ~= 'false'
-   opt.save = opt.save..'/'..opt.dataset..'/'..opt.netType..'/'
+   opt.save = opt.save .. '/' .. opt.netType .. opt.depth .. 'x' .. opt.widen_factor .. '/'
+   opt.featureMap = math.floor(opt.cropSize/128)
    if opt.resume ~= '' then 
-       opt.resume = opt.resume..'/'..opt.dataset..'/'..opt.netType..'/'
+       opt.resume = opt.resume .. '/' .. opt.netType .. opt.depth .. 'x' .. opt.widen_factor .. '/'
    end
 
    if not paths.dirp(opt.save) and not paths.mkdir(opt.save) then
@@ -85,8 +89,8 @@ function M.parse(arg)
       end
       -- Default shortcutType=B and nEpochs=90
       opt.shortcutType = opt.shortcutType == '' and 'B' or opt.shortcutType
-      opt.nEpochs = opt.nEpochs == 0 and 200 or opt.nEpochs
-      opt.imageSize = opt.imageSize == 0 and 512 or opt.imageSize
+      opt.nEpochs = opt.nEpochs == 0 and 90 or opt.nEpochs
+      opt.imageSize = opt.imageSize == 0 and 1024 or opt.imageSize
    else
       cmd:error('unknown dataset: ' .. opt.dataset)
    end

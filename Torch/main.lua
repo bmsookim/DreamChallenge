@@ -13,7 +13,7 @@ require 'nn'
 local DataLoader = require 'dataloader'
 local models = require 'networks/init'
 local Trainer = require 'train'
-local Tester = require 'test'
+-- local Tester = require 'test'
 local opts = require 'opts'
 local checkpoints = require 'checkpoints'
 
@@ -25,7 +25,7 @@ torch.manualSeed(opt.manualSeed)
 cutorch.manualSeedAll(opt.manualSeed)
 
 -- Load previous checkpoint, if it exists
-local checkpoint, optimState = checkpoints.latest(opt)
+local checkpoint, optimState = checkpoints.best(opt)
 
 -- Create model
 local model, criterion = models.setup(opt, checkpoint)
@@ -35,12 +35,12 @@ local trainLoader, valLoader = DataLoader.create(opt)
 
 -- The trainer handles the training loop and evaluation on validation set
 local trainer = Trainer(model, criterion, opt, optimState)
-local tester = Tester(model, criterion, opt, optimState)
+-- local tester = Tester(model, criterion, opt, optimState)
 
-if opt.testPhase then
-   tester:test()
-   return
-end
+--if opt.testPhase then
+--   tester:test()
+--   return
+--end
 
 if opt.testOnly then
    local top1Err, top5Err = trainer:test(0, valLoader)

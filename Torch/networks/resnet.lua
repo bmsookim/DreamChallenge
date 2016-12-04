@@ -23,7 +23,7 @@ local function createModel(opt)
    local k = opt.k
    local shortcutType = opt.shortcutType or 'B'
    local iChannels
-   print (k)
+
    -- The shortcut layer is either identity or 1x1 convolution
    local function shortcut(nInputPlane, nOutputPlane, stride)
       local useConv = shortcutType == 'C' or
@@ -102,29 +102,30 @@ local function createModel(opt)
    if opt.dataset == 'dreamChallenge' then
       -- Configurations for ResNet:
       --  num. residual blocks, num features, residual block function
+      factor = 2
       local cfg = {
-         [18]  = {{2, 2, 2, 2}, 512, basicblock},
-         [34]  = {{3, 4, 6, 3}, 512, basicblock},
-         [50]  = {{3, 4, 6, 3}, 2048, bottleneck},
-         [101] = {{3, 4, 23, 3}, 2048, bottleneck},
-         [152] = {{3, 8, 36, 3}, 2048, bottleneck},
+         [18]  = {{2, 2, 2, 2}, 512*factor, basicblock},
+         [34]  = {{3, 4, 6, 3}, 512*factor, basicblock},
+         [50]  = {{3, 4, 6, 3}, 2048*factor, bottleneck},
+         [101] = {{3, 4, 23, 3}, 2048*factor, bottleneck},
+         [152] = {{3, 8, 36, 3}, 2048*factor, bottleneck},
       }
 
       assert(cfg[depth], 'Invalid depth: ' .. tostring(depth))
       local def, nFeatures, block = table.unpack(cfg[depth])
-      iChannels = 64
+      iChannels = 64*factor
       print(' | ResNet-' .. depth .. ' ImageNet')
 
       -- The ResNet ImageNet model
-      model:add(Convolution(3,64,7,7,2,2,3,3))
-      model:add(SBatchNorm(64))
+      model:add(Convolution(3,64*factor,7,7,4,4,3,3)) -- Spatial size : 256 x 256
+      model:add(SBatchNorm(64*factor))
       model:add(ReLU(true))
-      model:add(Max(3,3,2,2,1,1))
-      model:add(layer(block, 64, def[1]))
-      model:add(layer(block, 128, def[2], 2))
-      model:add(layer(block, 256, def[3], 2))
-      model:add(layer(block, 512, def[4], 2))
-      model:add(Avg(7, 7, 1, 1))
+      model:add(Max(3,3,2,2,1,1)) -- Spatial size : 128 x 128
+      model:add(layer(block, 64*factor, def[1], 2)) -- Spatial size : 64 x 64
+      model:add(layer(block, 128*factor, def[2], 2)) -- Spatial size : 32 x 32
+      model:add(layer(block, 256*factor, def[3], 2)) -- Spatial size : 16 x 16
+      model:add(layer(block, 512*factor, def[4], 2)) -- Spatial size : 8 x 8
+      model:add(Avg(8, 8, 1, 1))
       model:add(nn.View(nFeatures):setNumInputDims(3))
       model:add(nn.Linear(nFeatures, 2))
    else
@@ -143,7 +144,6 @@ local function createModel(opt)
          end
       end
    end
-
    local function BNInit(name)
       for k,v in pairs(model:findModules(name)) do
          v.weight:fill(1)
