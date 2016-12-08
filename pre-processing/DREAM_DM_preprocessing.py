@@ -90,24 +90,30 @@ class App(object):
                     'fname'  : row['filename']
                 }
 
+                if 'cancer' in row:
+                    s_dict[k][row['view']][row['laterality']]['cancer'] = row['cancer']
+
         return s_dict
 
     def __build_exams_data_from_metadata(self):
-        config_metadata = self.config['data'][self.args.corpus]['metadata']
-        exams_file_path = '/'.join([
-            config_metadata['dir'],
-            config_metadata['exams_metadata']
-        ])
+        try:
+            config_metadata = self.config['data'][self.args.corpus]['metadata']
+            exams_file_path = '/'.join([
+                config_metadata['dir'],
+                config_metadata['exams_metadata']
+            ])
 
-        e_dict = dict()
-        with open(exams_file_path, 'rt') as f:
-            walker = csv.DictReader(f, delimiter='\t')
-            for row in walker:
-                k = (row['subjectId'], row['examIndex'])
+            e_dict = dict()
+            with open(exams_file_path, 'rt') as f:
+                walker = csv.DictReader(f, delimiter='\t')
+                for row in walker:
+                    k = (row['subjectId'], row['examIndex'])
 
-                e_dict[k] = row
+                    e_dict[k] = row
 
-        return e_dict
+            return e_dict
+        except:
+            return None
 
     """
     Preprocessing Main Pipeline (end-point)
@@ -200,16 +206,20 @@ class App(object):
 
                     # run image preprocessing and save result
                     img = self.preprocessing_dcm(dcm, l, proc_num)
-                    exams = self.e_dict[k]
 
-                    self.write_img(img, exams, {
+                    if self.e_dict == None:
+                        cancer_label = info['cancer']
+                    else:
+                        cancer_label = self.e_dict[k]['cancer' + l]
+
+                    self.write_img(img, cancer_label, {
                         's_id': s_id,
                         'exam_idx': exam_idx,
                         'v': v,
                         'l': l
                         }, target_dir)
 
-                    meta_f.write('\t'.join([s_id, exam_idx, v, l, exams['cancer' + l]]))
+                    meta_f.write('\t'.join([s_id, exam_idx, v, l, cancer_label]))
                     meta_f.write('\n')
             cnt+=1
 
@@ -233,9 +243,8 @@ class App(object):
 
         return img
 
-    def write_img(self, img, exams, meta, target_dir):
+    def write_img(self, img, cancer_label, meta, target_dir):
         if self.args.form == 'class':
-            cancer_label = exams['cancer' + meta['l']]
             img_dir = '/'.join([target_dir, cancer_label])
             util.mkdir(img_dir)
             Preprocessor.write_img('/'.join([img_dir,

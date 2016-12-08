@@ -38,9 +38,24 @@ def flip(img, direction='H'):
 
 # size parameter is tuple(W, H)
 def resize(img, size=(1024,1024)):
-    return cv2.resize(img, size, interpolation = cv2.INTER_NEAREST)
+    return cv2.resize(img, size, interpolation = cv2.INTER_LINEAR)
 
-def trim(img):
+def trim(im):
+    ret,thresh = cv2.threshold(im,0,255,0)
+    _,contours,_ = cv2.findContours(thresh,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+    areas = [cv2.contourArea(c) for c in contours]
+
+    max_index = np.argmax(areas)
+    areas.remove(max(areas))
+
+    cnt=contours[max_index]
+    mask = np.zeros(im.shape,np.uint8)
+    cv2.drawContours(mask,[cnt],0,255,-1)
+
+    image = cv2.bitwise_and(im, im, mask=mask)
+
+    return image
+    """
     ret,thresh = cv2.threshold(img,0,255,0)
     _,contours,__ = cv2.findContours(thresh,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
     areas = [cv2.contourArea(c) for c in contours]
@@ -58,6 +73,7 @@ def trim(img):
     trimmed = img[y:y+h, x:x+w]
 
     return trimmed
+    """
 
 def padding(img):
     max_size = len(img)

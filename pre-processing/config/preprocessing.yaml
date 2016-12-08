@@ -10,12 +10,12 @@ data:
             images_crosswalk: images_crosswalk.tsv
 
     InBreast:
-        all: /data/DreamChallenge_mammo/INBreast/AllDICOMs
+        train: /data/DreamChallenge_mammo/INBreast/AllDICOMs
         metadata:
             dir: /data/DreamChallenge_mammo/INBreast/meta
             images_crosswalk: images_crosswalk.tsv
     KUMC-guro:
-        all: /media/yumihwan/Data/DreamChallenge_mammo/KUMC-guro
+        train: /media/yumihwan/Data/DreamChallenge_mammo/KUMC-guro
         metadata:
             dir: /media/yumihwan/Data/DreamChallenge_mammo/KUMC-guro/metadata
             images_crosswalk: images_crosswalk.tsv
@@ -29,7 +29,7 @@ preprocessing:
 
     modify:
         # method  [resize, flip, trim, padding]
-        pipeline: [resize, flip, trim, padding, colormap]
+        pipeline: [flip, trim, padding, resize]
         
     feature:
         # extraction  [orb, sift, surf]
