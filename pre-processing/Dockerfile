@@ -48,48 +48,44 @@ ENV PATH=$PATH:/usr/local/cuda/bin
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 ENV CUDA_HOME=/usr/local/cuda
 
-# install opencv
-WORKDIR /opt
-RUN git clone https://github.com/Itseez/opencv.git && \
-    cd /opt/opencv &&\
-    git checkout 3.0.0
-RUN git clone https://github.com/Itseez/opencv_contrib.git && \
-    cd /opt/opencv_contrib && \
-    git checkout 3.0.0
 
 WORKDIR /opt/opencv
 RUN mkdir build
 WORKDIR /opt/opencv/build
 RUN pip install numpy
-RUN cmake -D CMAKE_BUILD_TYPE=RELEASE \
-        -D CMAKE_INSTALL_PREFIX=/usr/local \
-        -D INSTALL_C_EXAMPLES=ON \
-        -D INSTALL_PYTHON_EXAMPLES=ON \
-        -D OPENCV_EXTRA_MODULES_PATH=/opt/opencv_contrib/modules \
-        -D BUILD_EXAMPLES=ON .. \
-        -DCUDA_CUDA_LIBRARY:FILEPATH=/usr/local/cuda/lib64/libcudart.so && \
-    make -j$(nproc) && install && \
-    echo "/usr/local/lib" | sudo tee -a /etc/ld.so.conf.d/opencv.conf && \
-    ldconfig
-
 
 # clone and setup py-faster-rcnn (from custom repo)
 WORKDIR /opt
-RUN git clone https://github.com/torch/distro.git /torch --recursive
-RUN cd torch && \
+RUN git clone https://github.com/torch/distro.git /root/torch --recursive
+RUN cd /root/torch && \
+    bash install-deps && \
     ./install.sh
 
+WORKDIR /root/torch
+ENV LUA_PATH='/root/.luarocks/share/lua/5.1/?.lua;/root/.luarocks/share/lua/5.1/?/init.lua;/root/torch/install/share/lua/5.1/?.lua;/root/torch/install/share/lua/5.1/?/init.lua;./?.lua;/root/torch/install/share/luajit-2.1.0-beta1/?.lua;/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua'
+ENV LUA_CPATH='/root/.luarocks/lib/lua/5.1/?.so;/root/torch/install/lib/lua/5.1/?.so;./?.so;/usr/local/lib/lua/5.1/?.so;/usr/local/lib/lua/5.1/loadall.so'
+ENV PATH=/root/torch/install/bin:$PATH
+ENV LD_LIBRARY_PATH=/root/torch/install/lib:$LD_LIBRARY_PATH
+ENV DYLD_LIBRARY_PATH=/root/torch/install/lib:$DYLD_LIBRARY_PATH
+ENV LUA_CPATH='/root/torch/install/lib/?.so;'$LUA_CPATH
 
-# copy preprocessing project
-WORKDIR / 
-    # install python dependencies
-COPY requirements.txt  ./
-RUN pip install -r requirements.txt
-    # end-point execution files
-COPY DREAM_DM_preprocessing.py util.py preprocess.sh ./
-    # Preprocessor module
-COPY Preprocessor ./Preprocessor
-    # configurations (logging, preprocessing)
-COPY config ./config
-    # Torch dataset builder
-COPY Torch ./Torch
+
+RUN apt-get install python-opencv -y
+
+# clone and install faster-rcnn package
+WORKDIR /
+RUN git clone --recursive https://github.com/rbgirshick/py-faster-rcnn.git
+    # install dependencies for installing caffe
+RUN pip install Cython easydict && \
+    apt-get install libprotobuf-dev \
+    libleveldb-dev \
+    libsnappy-dev \
+    libopencv-dev \
+    libhdf5-serial-dev \
+    protobuf-compiler -y && \
+    apt-get install --no-install-recommends libboost-all-dev -y
+RUN cd /py-faster-rcnn/lib && \
+    make
+RUN cd /py-faster-rcnn/caffe-fast-rcnn && \
+    cp Makefile.config.example Makefile.config && \
+    make -j8 && make pycaffe
