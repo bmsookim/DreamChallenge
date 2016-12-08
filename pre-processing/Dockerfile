@@ -49,12 +49,12 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 ENV CUDA_HOME=/usr/local/cuda
 
 
-WORKDIR /opt/opencv
-RUN mkdir build
-WORKDIR /opt/opencv/build
-RUN pip install numpy
+#WORKDIR /opt/opencv
+#RUN mkdir build
+#WORKDIR /opt/opencv/build
+#RUN pip install numpy
 
-# clone and setup py-faster-rcnn (from custom repo)
+# install torch
 WORKDIR /opt
 RUN git clone https://github.com/torch/distro.git /root/torch --recursive
 RUN cd /root/torch && \
@@ -69,13 +69,13 @@ ENV LD_LIBRARY_PATH=/root/torch/install/lib:$LD_LIBRARY_PATH
 ENV DYLD_LIBRARY_PATH=/root/torch/install/lib:$DYLD_LIBRARY_PATH
 ENV LUA_CPATH='/root/torch/install/lib/?.so;'$LUA_CPATH
 
-
+# install opencv
 RUN apt-get install python-opencv -y
 
 # faster-rcnn project
 WORKDIR /
     # install dependencies for installing caffe
-RUN pip install Cython easydict && \
+RUN pip install Cython easydict scikit-image && \
     apt-get install -y \
     libprotobuf-dev \
     libleveldb-dev \
@@ -84,8 +84,12 @@ RUN pip install Cython easydict && \
     libhdf5-serial-dev \
     protobuf-compiler\
     libgflags-dev libgoogle-glog-dev liblmdb-dev \
-    libatlas-dev liblapack-dev && \
-    apt-get install --no-install-recommends libboost-all-dev -y
+    libatlas-base-dev liblapack-dev && \
+    apt-get install --no-install-recommends libboost-all-dev -y && \
+    # update configuration
+    ldconfig && \
+    ln /dev/null /dev/raw1394
+
     # clone faster-rcnn
 RUN git clone https://github.com/rbgirshick/py-faster-rcnn.git
     # clone caffe
@@ -98,3 +102,10 @@ RUN cd /py-faster-rcnn/lib && \
     # install caffe
 RUN cd /py-faster-rcnn/caffe-fast-rcnn && \
     make -j8 && make pycaffe
+
+# move preprocessing scripts
+WORKDIR /
+COPY DREAM_DM_preprocessing.py util.py preprocess.sh ./
+COPY Preprocessor ./Preprocessor
+COPY config ./config
+COPY Torch ./Torch
