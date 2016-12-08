@@ -1,58 +1,91 @@
-from nvidia/caffe
+FROM nvidia/cuda:8.0-cudnn5-devel
+MAINTAINER MinhwanYu <minhwan90@gmail.com>
 
+# install packages
 RUN apt-get update && apt-get install -y \
     python-dev \
     python-pip \
     git \
-    vim
-
-
-RUN pip install pydicom
-
-ENV PATH=$PATH:/usr/local/cuda/bin
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64
-
-RUN git clone https://github.com/Itseez/opencv_contrib.git && \
-    cd opencv_contrib && \
-    git checkout 3.0.0
-
-RUN git clone https://github.com/Itseez/opencv.git
-WORKDIR /opencv
-RUN git checkout 3.0.0
-RUN mkdir build
-WORKDIR /opencv/build
-
-RUN apt-get install -y \
+    vim \
+    build-essential \
+    checkinstall \
     cmake \
-    build-essential
-RUN cmake -D CMAKE_BUILD_TYPE=RELEASE \
-        -D CMAKE_INSTALL_PREFIX=/usr/local \
-        -D INSTALL_C_EXAMPLES=ON \
-        -D INSTALL_PYTHON_EXAMPLES=ON \
-        -D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib/modules \
-        -D BUILD_EXAMPLES=ON ..
-RUN make -j $(nproc)
+    pkg-config \
+    yasm \
+    libtiff5-dev \
+    libjpeg-dev \
+    libjasper-dev \
+    libavcodec-dev \
+    libavformat-dev \
+    libswscale-dev \
+    libdc1394-22-dev \
+    libxine-dev \
+    libgstreamer0.10-dev \
+    libgstreamer-plugins-base0.10-dev \
+    libv4l-dev \
+    python-dev \
+    python-numpy \
+    python-pip \
+    libtbb-dev \
+    libeigen3-dev \
+    libqt4-dev \
+    libgtk2.0-dev \
+    libopencore-amrnb-dev \
+    libopencore-amrwb-dev \
+    libtheora-dev \
+    libvorbis-dev \
+    libxvidcore-dev \
+    x264 \ 
+    v4l-utils \
+    libgtk2.0-dev \
+    unzip \
+    wget \
+    curl \
+    libreadline-dev
 
-RUN \
-    /bin/bash -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf' && \
-    ldconfig && \
-    echo  'export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig' >> ~/.bashrc && \
-    cp /opencv/build/lib/cv2.so /usr/local/lib/python2.7/dist-packages/
+# set environment variables
+ENV PATH=$PATH:/usr/local/cuda/bin
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+ENV CUDA_HOME=/usr/local/cuda
 
-WORKDIR /
-RUN \ 
-    rm -rf opencv && \
-    rm -rf opencv_contrib
 
-# install torch
-RUN git clone https://github.com/torch/distro.git /torch --recursive
-RUN apt-get install -y curl wget libreadline-dev
-RUN cd torch && \
+WORKDIR /opt/opencv
+RUN mkdir build
+WORKDIR /opt/opencv/build
+RUN pip install numpy
+
+# clone and setup py-faster-rcnn (from custom repo)
+WORKDIR /opt
+RUN git clone https://github.com/torch/distro.git /root/torch --recursive
+RUN cd /root/torch && \
+    bash install-deps && \
     ./install.sh
 
-ARG CACHEBUST=0
-WORKDIR / 
-COPY requirements.txt DREAM_DM_preprocessing.py util.py preprocess.sh ./
-RUN pip install -r requirements.txt
-COPY Preprocessor ./Preprocessor
-COPY config ./config
+WORKDIR /root/torch
+ENV LUA_PATH='/root/.luarocks/share/lua/5.1/?.lua;/root/.luarocks/share/lua/5.1/?/init.lua;/root/torch/install/share/lua/5.1/?.lua;/root/torch/install/share/lua/5.1/?/init.lua;./?.lua;/root/torch/install/share/luajit-2.1.0-beta1/?.lua;/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua'
+ENV LUA_CPATH='/root/.luarocks/lib/lua/5.1/?.so;/root/torch/install/lib/lua/5.1/?.so;./?.so;/usr/local/lib/lua/5.1/?.so;/usr/local/lib/lua/5.1/loadall.so'
+ENV PATH=/root/torch/install/bin:$PATH
+ENV LD_LIBRARY_PATH=/root/torch/install/lib:$LD_LIBRARY_PATH
+ENV DYLD_LIBRARY_PATH=/root/torch/install/lib:$DYLD_LIBRARY_PATH
+ENV LUA_CPATH='/root/torch/install/lib/?.so;'$LUA_CPATH
+
+
+RUN apt-get install python-opencv -y
+
+# clone and install faster-rcnn package
+WORKDIR /
+RUN git clone --recursive https://github.com/rbgirshick/py-faster-rcnn.git
+    # install dependencies for installing caffe
+RUN pip install Cython easydict && \
+    apt-get install libprotobuf-dev \
+    libleveldb-dev \
+    libsnappy-dev \
+    libopencv-dev \
+    libhdf5-serial-dev \
+    protobuf-compiler -y && \
+    apt-get install --no-install-recommends libboost-all-dev -y
+RUN cd /py-faster-rcnn/lib && \
+    make
+RUN cd /py-faster-rcnn/caffe-fast-rcnn && \
+    cp Makefile.config.example Makefile.config && \
+    make -j8 && make pycaffe

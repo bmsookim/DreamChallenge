@@ -36,6 +36,7 @@ class App(object):
             sys.exit(-1)
 
         self.data_dir = self.config['data'][args.corpus][args.dataset]
+        #self.data_dir = self.config['data'][args.dataset]
 
         self.__assign_proc_cnt()
         self.display_setups()
@@ -67,14 +68,11 @@ class App(object):
 
 
     def __build_image_data_from_metadata(self):
-        logger.info('build image data from metadata')
-
-
         config_metadata = self.config['data'][self.args.corpus]['metadata']
         cross_walk_file_path = '/'.join([
             config_metadata['dir'],
             config_metadata['images_crosswalk']
-            ])
+        ])
 
         s_dict = dict()
         with open(cross_walk_file_path, 'rt') as f:
@@ -99,7 +97,7 @@ class App(object):
         exams_file_path = '/'.join([
             config_metadata['dir'],
             config_metadata['exams_metadata']
-            ])
+        ])
 
         e_dict = dict()
         with open(exams_file_path, 'rt') as f:
@@ -115,23 +113,37 @@ class App(object):
     Preprocessing Main Pipeline (end-point)
     """
     def preprocessing(self):
-        target_dir = '/'.join([
-            self.config['resultDir'],
-            self.args.corpus,self.args.dataset])
+
+        # subject_dict / exams_dict
+        s_dict, self.e_dict = self.build_metadata()
+        logger.info('The size of data: {0}'.format(len(s_dict)))
+
+        if self.args.valid == 1:
+            s_dict_train, s_dict_valid = self.split_train_valid(s_dict)
+            logger.info('preprocessing start : {0}'.format(self.args.dataset))
+            self.preprocessing_dataset(s_dict_train, self.args.dataset)
+            logger.info('preprocessing start : {0}'.format('val'))
+            self.preprocessing_dataset(s_dict_valid, 'val')
+        else:
+            logger.info('preprocessing start : {0}'.format(self.args.dataset))
+            self.preprocessing_dataset(s_dict, self.args.dataset)
+
+    def preprocessing_dataset(self, s_dict, dataset_name):
         tmp_dir    = '/'.join([
             self.config['resultDir'],
-            'tmp'])
-
-        try:
-            shutil.rmtree(target_dir)
-        except:
-            pass
+            'tmp'
+        ])
+        target_dir = '/'.join([
+            self.config['resultDir'],
+            self.args.corpus,
+            dataset_name
+        ])
+        try:    shutil.rmtree(target_dir)
+        except: pass
 
         util.mkdir(target_dir)
         util.mkdir(tmp_dir)
 
-        # find patient pair
-        s_dict, self.e_dict = self.build_metadata()
 
         logger.debug('split subject_dict start')
         if self.proc_cnt == 1:
@@ -155,12 +167,15 @@ class App(object):
         for proc in procs:
             proc.join()
 
-        # merge tmp merge data
-        metadata_f = open('/'.join([target_dir, 'metadata.tsv']), 'w')
-        for metadata_tmp in glob.glob('/'.join([tmp_dir, 'metadata_*.tsv'])):
-            metadata_tmp_f = open(metadata_tmp, 'r')
-            metadata_f.write(metadata_tmp_f.read())
-        metadata_f.close()
+        self.merge_metadata(target_dir, tmp_dir)
+
+    def split_train_valid(self, s_dict):
+        s_size = len(s_dict)
+        train_size = int(s_size * 0.8)
+
+        train_valid = util.split_dict(s_dict, train_size)
+
+        return train_valid[0],train_valid[1]
 
     def preprocessing_single_proc(self, s_dict, source_dir, target_dir, tmp_dir, proc_num=0):
         logger.info('Proc{proc_num} start'.format(proc_num = proc_num))
@@ -203,7 +218,6 @@ class App(object):
             p_size = len(s_dict),
             elapsed_time = timer() - start
             ))
-        print("{0} - {1}".format(proc_num, cnt))
         meta_f.close()
 
     def preprocessing_dcm(self, dcm, l, proc_num=0):
@@ -234,6 +248,18 @@ class App(object):
             logger.error('invalid form: {form}'.format(form=self.args.form))
             sys.exit(-1)
 
+    def merge_metadata(self, target_dir, tmp_dir):
+        img_cnt = 0
+
+        # merge tmp merge data
+        metadata_f = open('/'.join([target_dir, 'metadata.tsv']), 'w')
+        for metadata_tmp in glob.glob('/'.join([tmp_dir, 'metadata_*.tsv'])):
+            metadata_tmp_f = open(metadata_tmp, 'r')
+            metadata_f.write(metadata_tmp_f.read())
+            img_cnt += 1
+
+        return img_cnt
+
     def alignment_both(self, l_img, r_img):
         # feature extraction & matching
         features, matches, masks = matcher.flann(l_img, r_img)
@@ -245,6 +271,7 @@ class App(object):
     def extract_roi(self, img):
         # from hwejin
         pass
+
 
     def display_setups(self):
         # TODO:
@@ -262,11 +289,6 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--dataset',
             required=True,
             help='dataset in corpus')
-    """
-    parser.add_argument('-m', '--metadata',
-            required=False,
-            help='directory path including images_crosswalk.csv')
-    """
     parser.add_argument('-p', '--processor',
             type=int,
             required=False,
@@ -274,6 +296,10 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--form',
             required=True,
             help='class, robust')
+    parser.add_argument('-v', '--valid',
+            type=int,
+            required=False,
+            help='generate validset from training')
 
     args = parser.parse_args()
 

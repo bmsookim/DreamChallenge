@@ -51,11 +51,10 @@ def build_logger(default_path='config/logging.yaml',
             config = yaml.safe_load(f.read())
         for handler in config['handlers'].keys():
             if 'filename' in config['handlers'][handler]:
-                print os.path.dirname(config['handlers'][handler]['filename'])
                 mkdir(os.path.dirname(config['handlers'][handler]['filename']))
         logging.config.dictConfig(config)
     else:
-        logging.basicConfig(level=devault_level)
+        logging.basicConfig(level=default_level)
 
     return logging
 
