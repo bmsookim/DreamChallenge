@@ -1,3 +1,14 @@
+--
+--  Copyright (c) 2016, DMIS, Digital Mammography DREAM Challenge Team.
+--  All rights reserved.
+--
+--  (Author) Bumsoo Kim, 2016
+--  Github : https://github.com/meliketoy/DreamChallenge
+--
+--  Korea University, Data-Mining Lab
+--  Digital Mammography DREAM Challenge Torch Implementation
+--
+
 local datasets = require 'datasets/init'
 local Threads = require 'threads'
 Threads.serialization('threads.sharedserialize')

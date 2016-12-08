@@ -1,8 +1,12 @@
+--
+--  Copyright (c) 2016, DMIS, Digital Mammography DREAM Challenge Team.
+--  All rights reserved.
+--
 --  (Author) Bumsoo Kim, 2016
 --  Github : https://github.com/meliketoy/DreamChallenge
 --
 --  Korea University, Data-Mining Lab
---  Image Recognition Torch Implementation
+--  Digital Mammography DREAM Challenge Torch Implementation
 --
 
 test_path = 'preprocessedData/test/19.jpg'

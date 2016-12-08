@@ -1,12 +1,12 @@
 --
---  Copyright (c) 2016, Facebook, Inc.
+--  Copyright (c) 2016, DMIS, Digital Mammography DREAM Challenge Team.
 --  All rights reserved.
 --
---  This source code is licensed under the BSD-style license found in the
---  LICENSE file in the root directory of this source tree. An additional grant
---  of patent rights can be found in the PATENTS file in the same directory.
+--  (Author) Bumsoo Kim, 2016
+--  Github : https://github.com/meliketoy/DreamChallenge
 --
---  The ResNet model definition
+--  Korea University, Data-Mining Lab
+--  Digital Mammography DREAM Challenge Torch Implementation
 --
 
 local nn = require 'nn'
