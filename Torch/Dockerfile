@@ -1,11 +1,14 @@
-# Start with CUDA Torch dependencies 2
-FROM kaixhin/cuda-torch-deps:2-7.0
-MAINTAINER Kai Arulkumaran <design@kaixhin.com>
+FROM nvidia/cuda:8.0-cudnn5-devel
+MAINTAINER MinhwanYu <minhwan90@gmail.com>
 
-# Restore Torch7 installation script
-RUN sed -i 's/path_to_nvcc=$(which no_nvcc)/path_to_nvcc=$(which nvcc)/g' install.sh
+# set environment variables
+ENV PATH=$PATH:/usr/local/cuda/bin
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+ENV CUDA_HOME=/usr/local/cuda
 
-# Install CUDA libraries
-RUN luarocks install cutorch && \
-    luarocks install cunn && \
-    luarocks install cudnn
+# install torch
+WORKDIR /opt
+RUN git clone https://github.com/torch/distro.git /root/torch --recursive
+RUN cd /root/torch && \
+    bash install-deps && \
+    ./install.sh

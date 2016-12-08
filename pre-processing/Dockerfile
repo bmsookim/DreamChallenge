@@ -75,7 +75,7 @@ RUN apt-get install python-opencv -y
 # faster-rcnn project
 WORKDIR /
     # install dependencies for installing caffe
-RUN pip install Cython easydict scikit-image && \
+RUN pip install Cython easydict&& \
     apt-get install -y \
     libprotobuf-dev \
     libleveldb-dev \
@@ -87,8 +87,7 @@ RUN pip install Cython easydict scikit-image && \
     libatlas-base-dev liblapack-dev && \
     apt-get install --no-install-recommends libboost-all-dev -y && \
     # update configuration
-    ldconfig && \
-    ln /dev/null /dev/raw1394
+    ldconfig
 
     # clone faster-rcnn
 RUN git clone https://github.com/rbgirshick/py-faster-rcnn.git
@@ -103,8 +102,15 @@ RUN cd /py-faster-rcnn/lib && \
 RUN cd /py-faster-rcnn/caffe-fast-rcnn && \
     make -j8 && make pycaffe
 
+RUN pip install scikit-image && \
+    ln /dev/null /dev/raw1394 && \
+    ldconfig
+
 # move preprocessing scripts
+ARG CACHEBUST=0
 WORKDIR /
+COPY requirements.txt  ./
+RUN pip install -r requirements.txt
 COPY DREAM_DM_preprocessing.py util.py preprocess.sh ./
 COPY Preprocessor ./Preprocessor
 COPY config ./config
