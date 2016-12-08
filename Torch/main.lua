@@ -16,7 +16,6 @@ require 'nn'
 local DataLoader = require 'dataloader'
 local models = require 'networks/init'
 local Trainer = require 'train'
--- local Tester = require 'test'
 local opts = require 'opts'
 local checkpoints = require 'checkpoints'
 
