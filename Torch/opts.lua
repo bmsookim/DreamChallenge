@@ -32,9 +32,8 @@ function M.parse(arg)
    cmd:option('-cropSize',        1024,     'Width & Height of cropped image')
    cmd:option('-featureMap',      0,       'final attention map size')
    cmd:option('-batchSize',       32,      'mini-batch size (1 = pure stochastic)')
-   cmd:option('-display_iter',    1,     'display of training iteration')
+   cmd:option('-display_iter',    100,     'display of training iteration')
    cmd:option('-top5_display',    'false', 'display top5 accuracy')
-   cmd:option('-testPhase',       'false', 'run on test phase scoring challenge')
    cmd:option('-testOnly',        'false', 'Run on validation set only')
    cmd:option('-tenCrop',         'false', 'Ten-crop testing')
    ------------- Checkpointing options ---------------
@@ -42,20 +41,20 @@ function M.parse(arg)
    cmd:option('-resume',          'scratch', 'Resume from the latest checkpoint in this directory')
    cmd:option('-saveLatest',      'false',   'Resume from the latest checkpoint')
    ---------- Optimization options ----------------------
-   cmd:option('-LR',              0.1,   'initial learning rate')
-   cmd:option('-momentum',        0.9,   'momentum')
-   cmd:option('-weightDecay',     1e-4,  'weight decay')
+   cmd:option('-LR',              0.1,     'initial learning rate')
+   cmd:option('-momentum',        0.9,     'momentum')
+   cmd:option('-weightDecay',     0.0005,  'weight decay')
    ---------- Model options ----------------------------------
    cmd:option('-netType',      'resnet', 'Options: resnet | wide-resnet')
-   cmd:option('-depth',        50,       'ResNet depth: 6n+4', 'number')
-   cmd:option('-widen_factor', 2,       'Wide-Resnet width', 'number')
+   cmd:option('-depth',        40,       'ResNet depth: 6n+4', 'number')
+   cmd:option('-widen_factor', 2,        'Wide-Resnet width', 'number')
    cmd:option('-dropout',      0,        'Dropout rate')
    cmd:option('-shortcutType', '',       'Options: A | B | C')
    cmd:option('-retrain',      'none',   'fine-tuning, Path to model to retrain with')
    cmd:option('-optimState',   'none',   'Path to an optimState to reload from')
    ---------- Model options ----------------------------------
-   cmd:option('-shareGradInput',  'true', 'Share gradInput tensors to reduce memory usage')
-   cmd:option('-optnet',          'false', 'Use optnet to reduce memory usage')
+   cmd:option('-shareGradInput',  'false', 'Share gradInput tensors to reduce memory usage')
+   cmd:option('-optnet',          'true', 'Use optnet to reduce memory usage')
    cmd:option('-resetClassifier', 'false', 'Reset the fully connected layer for fine-tuning')
    cmd:option('-nClasses',         0,      'Number of classes in the dataset')
    cmd:text()
@@ -69,10 +68,10 @@ function M.parse(arg)
    opt.optnet = opt.optnet ~= 'false'
    opt.resetClassifier = opt.resetClassifier ~= 'false'
    opt.top5_display = opt.top5_display ~= 'false'
-   opt.save = opt.save .. '/' .. opt.netType .. opt.depth .. 'x' .. opt.widen_factor .. '/'
-   opt.featureMap = math.floor(opt.cropSize/128)
+   opt.save = opt.save .. '/' .. opt.netType .. '-' ..opt.depth .. 'x' .. opt.widen_factor .. '/'
+   opt.featureMap = math.floor(opt.cropSize/64)
    if opt.resume ~= '' then 
-       opt.resume = opt.resume .. '/' .. opt.netType .. opt.depth .. 'x' .. opt.widen_factor .. '/'
+       opt.resume = opt.resume .. '/' .. opt.netType .. '-' .. opt.depth .. 'x' .. opt.widen_factor .. '/'
    end
 
    if not paths.dirp(opt.save) and not paths.mkdir(opt.save) then

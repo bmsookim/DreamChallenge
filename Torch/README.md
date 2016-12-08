@@ -38,7 +38,7 @@ preprocessedData
 ## How to run
 You can run each dataset which could be either cifar10, cifar100, imagenet, catdog by running the script below.
 ```bash
-./shell/train.sh
+./train.sh
 ```
 ## Cat vs Dog Results
 Below is the result of the validation set accuracy for Kaggle Cat vs Dog dataset training
