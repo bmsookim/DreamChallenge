@@ -11,7 +11,7 @@ end
 function M.generate(opt)
    local cachePath = paths.concat('/preprocessedData', opt.gen, opt.dataset .. '.t7')
    if not paths.filep(cachePath) or not isvalid(opt, cachePath) then
-      paths.mkdir('/preprocessedData/gen/')
+      paths.mkdir('/preprocessedData/dreamCh/gen/')
 
       local script = paths.dofile(opt.dataset .. '-gen.lua')
       script.exec(opt, cachePath)
