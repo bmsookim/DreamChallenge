@@ -5,7 +5,7 @@
 --  Image Recognition Torch Implementation
 --
 
-test_path = 'gen/catdog/test/19.jpg'
+test_path = 'preprocessedData/test/19.jpg'
 
 require 'torch'
 require 'paths'
@@ -60,8 +60,8 @@ result = model:forward(test_image):float()
 -- print(result)
 
 sigmoid = torch.sigmoid(result)
-print(sigmoid)
+-- print(sigmoid)
 
 maxs, indices = torch.max(sigmoid, 2)
 
-print('The prediction for '..test_path..' is ' .. labels[indices:sum()])
+print('The prediction for '..test_path..' is ' .. labels[indices:sum()] .. ' by ' .. maxs:sum() .. ' confidence')
