@@ -19,15 +19,15 @@ local Max = nn.SpatialMaxPooling
 local AdaMax = nn.SpatialAdaptiveMaxPooling
 local SBatchNorm = nn.SpatialBatchNormalization
 
-local function Dropout()
-   return nn.Dropout(opt and opt.dropout or 0,nil,true)
-end
-
 local function createModel(opt)
    local depth = opt.depth
    local shortcutType = opt.shortcutType or 'B'
    local iChannels
    local blocks = {}
+
+   local function Dropout()
+      return nn.Dropout(opt and opt.dropout or 0,nil,true)
+   end
 
    local function wide_basic(nInputPlane, nOutputPlane, stride)
       local conv_params = {
@@ -82,7 +82,7 @@ local function createModel(opt)
       assert((depth-4) % 6 == 0, 'depth should be 6n+4')
       local n = (depth-4)/6
       local k = opt.widen_factor
-      print(' | Wide-ResNet-' .. depth .. 'x' .. k .. ' ImageNet')
+      print(' | Wide-ResNet-' .. depth .. 'x' .. k .. ' Challenge Net')
       local nStages = torch.Tensor{16, 32, 64*k, 96*k, 128*k}
 
       -- The ResNet ImageNet model
