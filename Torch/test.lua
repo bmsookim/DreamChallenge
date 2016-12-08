@@ -68,4 +68,7 @@ sigmoid = torch.sigmoid(result)
 
 maxs, indices = torch.max(sigmoid, 2)
 
-print('The prediction for '..test_path..' is ' .. labels[indices:sum()] .. ' by ' .. maxs:sum() .. ' confidence')
+print('The prediction for '..test_path..' is '..
+                           sys.COLORS.red .. labels[indices:sum()] ..
+                           sys.COLORS.none .. ' by ' .. maxs:sum()
+                           .. ' confidence')
