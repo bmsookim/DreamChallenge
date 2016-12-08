@@ -133,7 +133,7 @@ cnt = 0
 bar.start()
 for row in walker:
     u_id = row['uniqueId']
-    dcm_paths = find_dicom(u_id)
+    dcm_paths = find_dicom_normal(u_id)
 
     for meta in  gen_meta(row, dcm_paths):
         meta_f.write(meta)
