@@ -3,6 +3,7 @@ import glob
 import dicom
 import progressbar
 import sys
+import traceback
 from os.path import basename
 
 def find_dicom_normal(u_id):
@@ -53,13 +54,16 @@ def gen_meta(row, dicom_paths):
     for dicom_path in dicom_paths:
         dcm = dicom.read_file(dicom_path)
 
-        view = dcm.ViewPosition
-        laterality = dcm.ImageLaterality
 
         try:
-            if row['laterality'][0] ==  laterality:
-                cancer = '1'
-            else:
+            view = dcm.ViewPosition
+            laterality = dcm.ImageLaterality
+            try:
+                if row['laterality'][0] ==  laterality:
+                    cancer = '1'
+                else:
+                    cancer = '0'
+            except:
                 cancer = '0'
 
             metas.append('\t'.join([
@@ -72,12 +76,13 @@ def gen_meta(row, dicom_paths):
                 cancer
             ]))
             imageIdx += 1
-        except:
+        except Exception as err:
             err_f.write(dicom_path)
             err_f.write('\n')
+            print(traceback.format_exc())
     return metas
 
-""" Cancer"""
+""" Cancer
 meta_f = open('metadata/cancer.meta.tsv', 'w')
 meta_f.write('subjectId\texamIndex\timageIndex\tview\tlaterality\tfilename\tcancer')
 meta_f.write('\n')
@@ -113,6 +118,7 @@ meta_f.close()
 err_f.close()
 
 f.close()
+"""
 
 """ Normal"""
 meta_f = open('metadata/normal.meta.tsv', 'w')

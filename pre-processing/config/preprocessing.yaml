@@ -1,0 +1,45 @@
+# Dataset paths
+data:
+    dreamCh:
+        pilot: /pilot
+        train: /trainingData
+        test : /testData
+        metadata:
+            dir: /metadata
+            exams_metadata:   exams_metadata.tsv
+            images_crosswalk: images_crosswalk.tsv
+
+    InBreast:
+        all: /data/DreamChallenge_mammo/INBreast/AllDICOMs
+        metadata:
+            dir: /data/DreamChallenge_mammo/INBreast/meta
+            images_crosswalk: images_crosswalk.tsv
+    KUMC-guro:
+        all: /media/yumihwan/Data/DreamChallenge_mammo/KUMC-guro
+        metadata:
+            dir: /media/yumihwan/Data/DreamChallenge_mammo/KUMC-guro/metadata
+            images_crosswalk: images_crosswalk.tsv
+
+
+# Preprocessing pipeline & applied methods
+preprocessing:
+    pipeline: [modify, feature, adjsut]
+
+    # cv2.COLORMAP_[GRAY, BONE]
+
+    modify:
+        # method  [resize, flip, trim, padding]
+        pipeline: [resize, flip, trim, padding, colormap]
+        
+    feature:
+        # extraction  [orb, sift, surf]
+        extraction  : surf
+        # matchin:    [brute_force, flann]
+        matching    : flann
+    adjust:
+        rule        : pass
+        algo        : pass
+
+# Preprocessing result root directory path
+resultDir: /preprocessedData
+logDir   : /preprocessedData/log/
