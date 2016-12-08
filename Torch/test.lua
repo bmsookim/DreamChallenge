@@ -1,66 +1,67 @@
+--  (Author) Bumsoo Kim, 2016
+--  Github : https://github.com/meliketoy/DreamChallenge
+--
+--  Korea University, Data-Mining Lab
+--  Image Recognition Torch Implementation
+--
+
+test_path = 'gen/catdog/test/19.jpg'
+
 require 'torch'
+require 'paths'
+require 'optim'
+require 'nn'
 require 'image'
-local optim = require 'optim'
-local M = {}
-local Tester = torch.class('resnet.Tester', M)
+local models = require 'networks/init'
 local opts = require 'opts'
-local _opt = opts.parse(arg)
-local elapsed_time = 0
+local checkpoints = require 'checkpoints'
 
-function Tester:__init(model, criterion, opt, optimState)
-   self.model = model
-   self.criterion = criterion
-   self.optimState = optimState or {
-      learningRate = opt.LR,
-      learningRateDecay = 0.0,
-      momentum = opt.momentum,
-      nesterov = true,
-      dampening = 0.0,
-      weightDecay = opt.weightDecay,
-   }
-   self.opt = opt
-   self.params, self.gradParams = model:getParameters()
+torch.setdefaulttensortype('torch.FloatTensor')
+torch.setnumthreads(1)
+
+labels = {'benign', 'malignant'}
+
+local opt = opts.parse(arg)
+torch.manualSeed(opt.manualSeed)
+cutorch.manualSeedAll(opt.manualSeed)
+
+-- Load previous checkpoint, if it exists
+local checkpoint, optimState = checkpoints.best(opt)
+
+-- Create model
+local model, criterion = models.setup(opt, checkpoint)
+model:evaluate()
+
+test_image = image.load(test_path)
+interpolation = 'bicubic'
+size = opt.cropSize
+
+local w, h = test_image:size(3), test_image:size(2)
+
+if(w<=h and w==size) or (h<=w and h==size) then
+   test_image = test_image
 end
 
-function Tester:test()
-   local timer = torch.Timer()
-   local dataTimer = torch.Timer()
-
-   self.model:evaluate()
-
-   local test_dir = './preprocessedData/test/'
-   images = image.load(test_dir .. '1.jpg')
-
-   interpolation = 'bicubic'
-   size = _opt.imageSize
-
-   local w,h = images:size(3), images:size(2)
-   if(w <= h and w == size) or (h <= w and h == size) then
-      images = images
-   end
-   if w < h then
-      images = image.scale(images, size, h/w * size, interpolation)
-   else
-      images = image.scale(images, w/h * size, size, interpolation)
-   end
-
-   local w1 = math.ceil((images:size(3) - size)/2)
-   local h1 = math.ceil((images:size(2) - size)/2)
-   images = image.crop(images, w1, h1, w1+size, h1+size)
-   self:copyInputs(images)
-
-   print(images:size())
-   output = self.model:forward(self.input):float()
-   print (output:size())
+if w < h then
+   test_image = image.scale(test_image, size, h/w * size, interpolation)
+else
+   test_image = image.scale(test_image, w/h * size, size, interpolation)
 end
 
-function Tester:copyInputs(sample)
-   -- Copies the input to a CUDA tensor, if using 1 GPU, or to pinned memory,
-   -- if using DataParallelTable. The target is always copied to a CUDA tensor
-   self.input = self.input or (self.opt.nGPU == 1
-      and torch.CudaTensor()
-      or cutorch.createCudaHostTensor())
-   self.input:resize(sample.input:size()):copy(sample.input)
-end
+local w1 = math.ceil((test_image:size(3) -size)/2)
+local h1 = math.ceil((test_image:size(2) -size)/2)
 
-return M.Tester
+test_image = image.crop(test_image, w1, h1, w1+size, h1+size)
+-- print(test_image:size())
+
+test_image:resize(1, 3, opt.cropSize, opt.cropSize)
+
+result = model:forward(test_image):float()
+-- print(result)
+
+sigmoid = torch.sigmoid(result)
+print(sigmoid)
+
+maxs, indices = torch.max(sigmoid, 2)
+
+print('The prediction for '..test_path..' is ' .. labels[indices:sum()])
