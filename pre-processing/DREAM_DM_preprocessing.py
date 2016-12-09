@@ -53,9 +53,11 @@ class App(object):
                 self.proc_cnt = 1
         else:
             self.proc_cnt = args_proc_cnt
+            """
             if self.proc_cnt > machine_proc_cnt or self.proc_cnt < 1:
                 logger.error('Invalid used proc_cnt: {0}'.format(self.args.processor))
                 sys.exit(-1)
+            """
 
     """
     Build Image and Exam  Data from dicom files or metadata file
