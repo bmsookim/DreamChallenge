@@ -14,6 +14,7 @@ from timeit import default_timer as timer
 # installed packages
 import yaml
 import dicom
+import numpy as np
 
 # implemented packages
 import util
@@ -21,6 +22,7 @@ import util
 import Preprocessor
 from   Preprocessor import alignment
 from   Preprocessor import matcher
+from   Preprocessor import extractor
 
 
 logger = util.build_logger()
@@ -53,11 +55,6 @@ class App(object):
                 self.proc_cnt = 1
         else:
             self.proc_cnt = args_proc_cnt
-            """
-            if self.proc_cnt > machine_proc_cnt or self.proc_cnt < 1:
-                logger.error('Invalid used proc_cnt: {0}'.format(self.args.processor))
-                sys.exit(-1)
-            """
 
     """
     Build Image and Exam  Data from dicom files or metadata file
@@ -121,7 +118,6 @@ class App(object):
     Preprocessing Main Pipeline (end-point)
     """
     def preprocessing(self):
-
         # subject_dict / exams_dict
         s_dict, self.e_dict = self.build_metadata()
         logger.info('The size of data: {0}'.format(len(s_dict)))
@@ -186,6 +182,11 @@ class App(object):
         return train_valid[0],train_valid[1]
 
     def preprocessing_single_proc(self, s_dict, source_dir, target_dir, tmp_dir, proc_num=0):
+        ext = {
+                'mass': extractor.MassExtractor(),
+                'calcification': None
+        }
+
         logger.info('Proc{proc_num} start'.format(proc_num = proc_num))
         start = timer()
 
@@ -207,7 +208,7 @@ class App(object):
                     dcm = dicom.read_file('/'.join([source_dir, info['fname']]))
 
                     # run image preprocessing and save result
-                    img = self.preprocessing_dcm(dcm, l, proc_num)
+                    img = self.preprocessing_dcm(dcm, l, ext, proc_num)
 
                     if self.e_dict == None:
                         cancer_label = info['cancer']
@@ -232,18 +233,49 @@ class App(object):
             ))
         meta_f.close()
 
-    def preprocessing_dcm(self, dcm, l, proc_num=0):
+    def preprocessing_dcm(self, dcm, l, ext, proc_num=0):
         logger.debug('start: {method}'.format(method='handle dcm'))
-        img = Preprocessor.dcm2cvimg(dcm, proc_num)
+
+        # original layer
+        og_gray = Preprocessor.dcm2cvimg(dcm, proc_num)
+        og_gray = Preprocessor.trim(og_gray)
+        if l == 'R':
+            og_gray = Preprocessor.flip(og_gray)
+
+        og_rgb  = Preprocessor.gray2rgb(og_gray)
+
+        # mass layer
+        mass= ext['mass'].get_mask(og_rgb)
+        # calification layer
+        cal = np.zeros(og_gray.shape)
+
+        # integrating layers
+        im = np.stack((
+            og_gray,
+            Preprocessor.img2gray(mass),
+            cal
+        ), axis= -1)
+
+        # crop
+        nz_coor = extractor.find_nonezero(im)
+        nz_coor = extractor.merge_coord(nz_coor)
+
+        im = extractor.crop_inner(nz_coor, og_gray, 1024)
+
+        # padding
+        #im = Preprocessor.padding(im)
+        im = Preprocessor.resize(im)
 
         # execute pipeline methods by configuration
+        """
         for method in self.config['preprocessing']['modify']['pipeline']:
             if method == 'flip' and  l == 'R': continue
             logger.debug('start: {method}'.format(method=method))
             img = getattr(Preprocessor, method)(img)
             logger.debug('end  : {method}'.format(method=method))
+        """
 
-        return img
+        return im
 
     def write_img(self, img, cancer_label, meta, target_dir):
         if self.args.form == 'class':
@@ -311,6 +343,9 @@ if __name__ == '__main__':
             type=int,
             required=False,
             help='generate validset from training')
+    parser.add_argument('-b', '--balanced',
+            required=False,
+            help='force balancing train & test')
 
     args = parser.parse_args()
 

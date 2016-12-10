@@ -101,14 +101,15 @@ def trim(im):
 
     return im[y:y+h, x:x+w]
 
+# TODO: revove flip
 def padding(img):
+    img = flip(img)
     max_size = len(img)
     empty = np.zeros([max_size, max_size], dtype=img.dtype)
 
     for i in range(len(img)):
         empty[i + max_size - len(img)][max_size - len(img[0]):] = img[i]
-
-    return empty
+    return flip(empty)
 
 def colormap(img, color_map='BONE'):
     color_map_flag = getattr(cv2, 'COLORMAP_' + color_map)

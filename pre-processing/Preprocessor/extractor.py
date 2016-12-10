@@ -103,6 +103,8 @@ def merge_coord(*args):
         max_coor = -1
         min_coor = sys.maxint
 
+        _max = None
+        _min = None
         for ch in args:
             if ch is None:continue
 
@@ -125,25 +127,33 @@ def crop_inner(coor, im, min_size=1024, margin=10):
 
 
     coord = {
-        'Y': cal_crop_coor(coor['Y'], h, min_size, margin, 'Y'),
-        'X': cal_crop_coor(coor['X'], w, min_size, margin, 'X')
+        'Y': cal_crop_boundary(coor['Y'], h, min_size, margin, 'Y'),
+        'X': cal_crop_boundary(coor['X'], w, min_size, margin, 'X')
     }
+
+    diff_y = coord['Y'][1] -coord['Y'][0]
+    diff_x = coord['X'][1] -coord['X'][0]
+
+    if diff_x < diff_y:
+        coord['X'][1] = coord['X'][0] + diff_y
+        if coord['X'][1] > w : coord['X'][1] = w
+    if diff_y < diff_x:
+        coord['Y'][1] = coord['Y'][0] + diff_x
+        if coord['Y'][1] > h : coord['Y'][1] = h
 
     im = im[coord['Y'][0]:coord['Y'][1],
             coord['X'][0]:coord['X'][1]]
 
     return im
 
-def cal_crop_coor(coor, og_size, min_size, margin=20, laterality='X'):
+def cal_crop_boundary(coor, og_size, min_size, margin=20, laterality='X'):
     #No min/max----------------------------
 
     if coor['max'] == None:
-        start= og_size * 0.1
-        end  = og_size * 0.9
+        start= og_size * 0.2
+        end  = og_size * 0.8
 
-        start -= margin
-        end   +=  margin
-        return (start, end)
+        return [int(start), int(end)]
     #----------------------------
     start = coor['min']
     end   = coor['max']
@@ -172,4 +182,4 @@ def cal_crop_coor(coor, og_size, min_size, margin=20, laterality='X'):
     else:
         end += margin
 
-    return(start, end)
+    return [int(start), int(end)]
