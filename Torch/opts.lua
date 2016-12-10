@@ -19,7 +19,7 @@ function M.parse(arg)
    cmd:text()
    cmd:text('Options:')
     ------------ General options --------------------
-   cmd:option('-data',       'preprocessedData',         'Path to dataset')
+   cmd:option('-data',       '/preprocessedData',         'Path to dataset')
    cmd:option('-dataset',    'dreamChallenge',           'Options: dreamChallenge')
    cmd:option('-manualSeed', 0,          'Manually set RNG seed')
    cmd:option('-nGPU',       2,          'Number of GPUs to use by default')
@@ -27,7 +27,7 @@ function M.parse(arg)
    cmd:option('-cudnn',      'fastest',  'Options: fastest | default | deterministic')
    cmd:option('-gen',        'gen',      'Path to save generated files')
    ------------- Data options ------------------------
-   cmd:option('-nThreads',        4, 'number of data loading threads')
+   cmd:option('-nThreads',        18, 'number of data loading threads')
    ------------- Training options --------------------
    cmd:option('-nEpochs',         0,       'Number of total epochs to run')
    cmd:option('-epochNumber',     1,       'Manual epoch number (useful on restarts)')
@@ -35,7 +35,7 @@ function M.parse(arg)
    cmd:option('-cropSize',        1024,     'Width & Height of cropped image')
    cmd:option('-featureMap',      0,       'final attention map size')
    cmd:option('-batchSize',       32,      'mini-batch size (1 = pure stochastic)')
-   cmd:option('-display_iter',    100,     'display of training iteration')
+   cmd:option('-display_iter',    15,     'display of training iteration')
    cmd:option('-top5_display',    'false', 'display top5 accuracy')
    cmd:option('-testOnly',        'false', 'Run on validation set only')
    cmd:option('-tenCrop',         'false', 'Ten-crop testing')
@@ -44,7 +44,7 @@ function M.parse(arg)
    cmd:option('-resume',          'scratch', 'Resume from the latest checkpoint in this directory')
    cmd:option('-saveLatest',      'false',   'Resume from the latest checkpoint')
    ---------- Optimization options ----------------------
-   cmd:option('-LR',              0.1,     'initial learning rate')
+   cmd:option('-LR',              0.01,     'initial learning rate')
    cmd:option('-momentum',        0.9,     'momentum')
    cmd:option('-weightDecay',     0.0005,  'weight decay')
    ---------- Model options ----------------------------------
@@ -86,8 +86,8 @@ function M.parse(arg)
       local trainDir = paths.concat(opt.data, 'train')
       if not paths.dirp(opt.data) then
          cmd:error('error: missing DreamChallengeNet data directory')
-      elseif not paths.dirp(trainDir) then
-         cmd:error('error: DreamChallengeNet missing `train` directory: ' .. trainDir)
+      --elseif not paths.dirp(trainDir) then
+      --   cmd:error('error: DreamChallengeNet missing `train` directory: ' .. trainDir)
       end
       -- Default shortcutType=B and nEpochs=90
       opt.shortcutType = opt.shortcutType == '' and 'B' or opt.shortcutType
