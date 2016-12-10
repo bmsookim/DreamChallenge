@@ -14,28 +14,58 @@ data:
         metadata:
             dir: /data/DreamChallenge_mammo/INBreast/meta
             images_crosswalk: images_crosswalk.tsv
+
     KUMC-guro:
         train: /data/KUMC-guro
         metadata:
             dir: /data/KUMC-guro/metadata
             images_crosswalk: images_crosswalk.balenced.tsv
+
     KUMC-anam:
         train: /data/KUMC-anam
         metadata:
             dir: /data/KUMC-anam/metadata
             images_crosswalk: images_crosswalk.tsv
 
-# Preprocessing pipeline & applied methods
-preprocessing:
-    pipeline: [modify, feature, adjsut]
-
-    # cv2.COLORMAP_[GRAY, BONE]
-
-    modify:
-        # method  [resize, flip, trim, padding]
-        pipeline: [flip, resize]
-
-
 # Preprocessing result root directory path
 resultDir: /preprocessedData
 logDir   : /preprocessedData/log/
+
+# Preprocessing pipeline
+#   sampling
+#   trim
+#   roi
+#   crop
+#   padding
+#   resize
+#   registration (not yet)
+pipeline: [sampling, trim, roi, crop, padding, resize]
+
+modules:
+    # SAMPLING
+    sampling: default
+    # TRIM
+    trim: null
+    # ROI
+    roi:
+        # target: [mass, calcification]
+        targets: [mass, calcification]
+        threshold:
+            mass: 0.7
+            calcification: 0.5
+    # CROP
+    crop:
+        # method: centered | roi-boundary
+        method: centered
+        padding: 10
+    # padding:
+    padding: null
+    # resize:
+    resize:
+        # method: NEAREST | LINEAR | AREA | CUBIC | LANCZOS4
+        interpolation: LINEAR
+        size:
+            width:  1024
+            height: 1024
+   
+
