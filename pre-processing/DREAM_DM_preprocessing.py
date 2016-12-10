@@ -183,16 +183,16 @@ class App(object):
         return train_valid[0],train_valid[1]
 
     def preprocessing_single_proc(self, s_dict, source_dir, target_dir, tmp_dir, proc_num=0):
-        ext = {
-                'mass': extractor.MassExtractor(),
-                'calcification': None
-        }
+        # create extractors based on configuration
+        ext = { target: extractor.facotry(
+                            target,
+                            self.config['modules']['roi'])
+                for target in self.config['modules']['roi']['targets'] }
 
         logger.info('Proc{proc_num} start'.format(proc_num = proc_num))
         start = timer()
 
         meta_f = open('/'.join([tmp_dir, 'metadata_' + str(proc_num) + '.tsv']),'w')
-        cnt = 0
         for (s_id, exam_idx) in s_dict.keys():
             k = (s_id, exam_idx)
 
@@ -225,19 +225,58 @@ class App(object):
 
                     meta_f.write('\t'.join([s_id, exam_idx, v, l, cancer_label]))
                     meta_f.write('\n')
-            cnt+=1
+        meta_f.close()
 
         logger.info('Proc{proc_num} Finish : size[{p_size}]\telapsed[{elapsed_time}]'.format(
             proc_num = proc_num,
             p_size = len(s_dict),
             elapsed_time = timer() - start
             ))
-        meta_f.close()
 
     def preprocessing_dcm(self, dcm, l, ext, proc_num=0):
         logger.debug('start: {method}'.format(method='handle dcm'))
 
-        # original layer
+        # convert dicom to image and preprocess image
+        imgs = dict()
+
+        # convert dicom to (gray scale) image
+        imgs['gray'] = Preprocessor.dcm2cvimg(dcm, proc_num)
+
+        # run pipeline before roi extraction
+        for module in self.config['pipeline']['prev_roi']:
+            logger.debug('Run module  : {method}'.format(method=method))
+            imgs['gray'] = getattr(Preprocessor, module)(
+                    imgs['gray'],
+                    self.config['modules'][module]
+            )
+
+        # run roi extraction
+        if self.config['pipeline']['roi']:
+            logger.debug('Run module  : ROI extraction')
+            imgs['rgb'] = Preprocessor.gray2rgb(imgs['gray'])
+            for target in self.config['roi']['targets']:
+                imgs[target] = ext[target].get_mask(imgs['rgb'])
+
+        # create image channel stack
+        im_layers = []
+        for channel in self.config['channel']:
+            im_layer = imgs[channel]
+            # if current im_layer is not single channel
+            if im_layer.shape[2] != 1:
+                im_layer = Preprocessor.img2gray(im_layer)
+            im_layers.append(im_layer)
+        im = np.stack(im_layers, axis=-1)
+
+
+        # run pipeline after roi extraction
+        for module in self.config['pipeline']['prev_roi']:
+            logger.debug('Run module  : {method}'.format(method=method))
+            im = getattr(Preprocessor, module)(
+                    im,
+                    self.config['modules'][module]
+            )
+
+        """
         og_gray = Preprocessor.dcm2cvimg(dcm, proc_num)
         og_gray = Preprocessor.trim(og_gray)
         if l == 'R':
@@ -258,11 +297,9 @@ class App(object):
         ), axis= -1)
 
         # crop - based on ROI
-        """
         nz_coor = extractor.find_nonezero(im)
         nz_coor = extractor.merge_coord(nz_coor)
         im = extractor.crop_inner(nz_coor, og_gray, 1024)
-        """
         # crop - based on center
         coor = extractor.find_center(im)
         im   = extractor.crop(coor, im)
@@ -275,14 +312,6 @@ class App(object):
             pass
             traceback.print_exc()
             print(im.shape)
-
-        # execute pipeline methods by configuration
-        """
-        for method in self.config['preprocessing']['modify']['pipeline']:
-            if method == 'flip' and  l == 'R': continue
-            logger.debug('start: {method}'.format(method=method))
-            img = getattr(Preprocessor, method)(img)
-            logger.debug('end  : {method}'.format(method=method))
         """
 
         return im
@@ -290,16 +319,26 @@ class App(object):
     def write_img(self, img, cancer_label, meta, target_dir):
         if self.args.form == 'class':
             img_dir = '/'.join([target_dir, cancer_label])
-            util.mkdir(img_dir)
-            Preprocessor.write_img('/'.join([img_dir,
-                '_'.join([meta['s_id'], meta['exam_idx'], meta['v'], meta['l']])  + '.png']), img)
+            img_path= '/'.join([img_dir,
+                                '_'.join([
+                                    meta['s_id'],
+                                    meta['exam_idx'],
+                                    meta['v'],
+                                    meta['l']
+                                    ]) + '.png'
+                                ])
         elif self.args.form == 'robust':
-            img_dir = '/'.join([target_dir, meta['s_id'], meta['exam_idx'], meta['l']])
-            util.mkdir(img_dir)
-            Preprocessor.write_img('/'.join([img_dir, v + '.png']), img)
+            img_dir = '/'.join([target_dir,
+                                meta['s_id'],
+                                meta['exam_idx'],
+                                meta['l']])
+            img_path= '/'.join([img_dir, v + '.png'])
         else:
             logger.error('invalid form: {form}'.format(form=self.args.form))
             sys.exit(-1)
+
+        util.mkdir(img_dir)
+        Preprocessor.write_img(img_path, img)
 
     def merge_metadata(self, target_dir, tmp_dir):
         img_cnt = 0
@@ -312,19 +351,6 @@ class App(object):
             img_cnt += 1
 
         return img_cnt
-
-    def alignment_both(self, l_img, r_img):
-        # feature extraction & matching
-        features, matches, masks = matcher.flann(l_img, r_img)
-
-        # adjust image
-        img1, img2 = alignment.adjust(features, matches, masks)
-        return img2
-
-    def extract_roi(self, img):
-        # from hwejin
-        pass
-
 
     def display_setups(self):
         # TODO:

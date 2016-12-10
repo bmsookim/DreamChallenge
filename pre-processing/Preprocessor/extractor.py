@@ -15,6 +15,15 @@ import xml.etree.ElementTree as ET
 import scipy.sparse
 import scipy.io as sio
 
+def factory(method, config):
+    if method == 'mass':
+        pass
+    elif method == 'calcification':
+        pass
+    else:
+        raise AttributeError('Invalid Method: {0}'.format(method))
+        sys.exit(-1)
+
 class MassExtractor():
     def __init__(self, gpu_id=0):
         self.CLASSES = ('__background__','mass')

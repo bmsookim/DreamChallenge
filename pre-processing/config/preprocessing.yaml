@@ -27,29 +27,37 @@ data:
             dir: /data/KUMC-anam/metadata
             images_crosswalk: images_crosswalk.tsv
 
-# Preprocessing result root directory path
+# result root directory path
 resultDir: /preprocessedData
 logDir   : /preprocessedData/log/
 
+
+# file sampling
+#   default | downsampling | manual (not yet)
+sampling: default
+
 # Preprocessing pipeline
-#   sampling
 #   trim
 #   roi
 #   crop
 #   padding
 #   resize
 #   registration (not yet)
-pipeline: [sampling, trim, roi, crop, padding, resize]
+pipeline: 
+    prev_roi: [trim, flip]
+    roi: True
+    post_roi: [crop, padding, resize]
+channel: [gray, mass, gray]
 
 modules:
-    # SAMPLING
-    sampling: default
     # TRIM
     trim: null
+    # FLIP
+    flip: R
     # ROI
     roi:
         # target: [mass, calcification]
-        targets: [mass, calcification]
+        targets: [mass]
         threshold:
             mass: 0.7
             calcification: 0.5
@@ -57,6 +65,7 @@ modules:
     crop:
         # method: centered | roi-boundary
         method: centered
+        min   : 1024
         padding: 10
     # padding:
     padding: null
@@ -68,4 +77,3 @@ modules:
             width:  1024
             height: 1024
    
-
