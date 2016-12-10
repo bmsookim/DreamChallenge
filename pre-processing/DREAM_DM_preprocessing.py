@@ -8,6 +8,7 @@ import sys
 import multiprocessing
 import csv
 import shutil
+import traceback
 
 from timeit import default_timer as timer
 
@@ -253,18 +254,27 @@ class App(object):
         im = np.stack((
             og_gray,
             Preprocessor.img2gray(mass),
-            cal
+            og_gray
         ), axis= -1)
 
-        # crop
+        # crop - based on ROI
+        """
         nz_coor = extractor.find_nonezero(im)
         nz_coor = extractor.merge_coord(nz_coor)
-
         im = extractor.crop_inner(nz_coor, og_gray, 1024)
+        """
+        # crop - based on center
+        coor = extractor.find_center(im)
+        im   = extractor.crop(coor, im)
 
         # padding
-        #im = Preprocessor.padding(im)
-        im = Preprocessor.resize(im)
+        try:
+            im = Preprocessor.padding(im)
+            im = Preprocessor.resize(im)
+        except Exception:
+            pass
+            traceback.print_exc()
+            print(im.shape)
 
         # execute pipeline methods by configuration
         """

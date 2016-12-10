@@ -75,6 +75,33 @@ class MassExtractor():
 """
 Inner Cropping
 """
+def find_center(im):
+    coor = {'X': {'max': None, 'min': None},
+            'Y': {'max': None, 'min': None} }
+    meta = dict()
+    meta['size']   = {'X': im.shape[1],
+                      'Y': im.shape[0]}
+    meta['center'] = {'X': meta['size']['X']/2,
+                      'Y': meta['size']['Y']/2}
+
+    base   = 'X' if meta['size']['Y'] > meta['size']['X'] else 'Y'
+    target = 'Y' if meta['size']['Y'] > meta['size']['X'] else 'X'
+    trans  = meta['size'][base] / 2
+
+    coor[target]['min'] = int(meta['center'][target] - trans)
+    coor[target]['max'] = int(meta['center'][target] + trans)
+    coor[base]['min']   = 0
+    coor[base]['max']   = meta['size'][base]
+
+    return coor
+
+def crop(coor, im):
+    im = im[coor['Y']['min']:coor['Y']['max'],
+            coor['X']['min']:coor['X']['max']]
+
+    return im
+
+#TODO: change function name (+ ROI)
 def find_nonezero(im):
     # ignore raw image (channel index:0)
     nz = np.nonzero(im[:,:,1])
@@ -121,10 +148,10 @@ def merge_coord(*args):
 
     return coor
 
+
 def crop_inner(coor, im, min_size=1024, margin=10):
     # height, width, channel
     h, w = im.shape[0], im.shape[1]
-
 
     coord = {
         'Y': cal_crop_boundary(coor['Y'], h, min_size, margin, 'Y'),
