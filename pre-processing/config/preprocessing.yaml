@@ -15,11 +15,15 @@ data:
             dir: /data/DreamChallenge_mammo/INBreast/meta
             images_crosswalk: images_crosswalk.tsv
     KUMC-guro:
-        train: /media/yumihwan/Data/DreamChallenge_mammo/KUMC-guro
+        train: /data/KUMC-guro
         metadata:
-            dir: /media/yumihwan/Data/DreamChallenge_mammo/KUMC-guro/metadata
+            dir: /data/KUMC-guro/metadata
+            images_crosswalk: images_crosswalk.balenced.tsv
+    KUMC-anam:
+        train: /data/KUMC-anam
+        metadata:
+            dir: /data/KUMC-anam/metadata
             images_crosswalk: images_crosswalk.tsv
-
 
 # Preprocessing pipeline & applied methods
 preprocessing:
@@ -29,16 +33,8 @@ preprocessing:
 
     modify:
         # method  [resize, flip, trim, padding]
-        pipeline: [flip, trim, padding, resize]
-        
-    feature:
-        # extraction  [orb, sift, surf]
-        extraction  : surf
-        # matchin:    [brute_force, flann]
-        matching    : flann
-    adjust:
-        rule        : pass
-        algo        : pass
+        pipeline: [flip, resize]
+
 
 # Preprocessing result root directory path
 resultDir: /preprocessedData
