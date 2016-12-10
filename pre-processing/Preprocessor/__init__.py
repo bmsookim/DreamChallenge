@@ -11,11 +11,54 @@ import cv2
 """
 image I/O func.
 """
-def dcm2cvimg(dcm, proc_num=0):
-    arr = dcm.pixel_array
-    img = cv2.convertScaleAbs(arr, alpha=(255.0/arr.max(axis=1).max(axis=0)))
+def dcm2cvimg(data, proc_num=0, lut_min=0, lut_max=255):
+    arr = data.pixel_array
+    gray = cv2.convertScaleAbs(arr, alpha=(255.0/arr.max(axis=1).max(axis=0)))
 
-    return img
+    """
+    arr = data.pixel_array
+
+    wc = (arr.max() + arr.min()) / 2.0
+    ww = arr.max()  - arr.min()  + 1.0
+
+    if ('WindowCenter' in data) and ('WindowWidth' in data):
+        wc = data.WindowCenter
+        ww = data.WindowWidth
+        try: wc = wc[0]
+        except: pass
+        try: ww = ww[0]
+        try: pass
+
+    minval = wc - 0.5 - (ww - 1.0) / 2.0
+    maxval = wc - 0.5 + (ww - 1.0) / 2.0
+
+    min_mask = (minval >= arr)
+    to_scale = (arr > minval) & (arr < maxval)
+    max_mask = (arr >= maxval)
+
+    if min_mask.any(): arr[min_mask] = lut_min
+    if to_scale.any(): arr[to_scale] = ((arr[to_scale] - (wc - 0.5)) /
+                                        (ww - 1.0) + 0.5) * lut_range + lut_min
+
+    if max_mask.any(): arr[max_mask] = lut_max
+
+    arr = np.rint(arr).astype(np.uint8)
+
+    col_row_string = ' '.join(reversed(map(str, arr.shape)))
+    bytedata_string = '\n'.join(('P5',
+                            col_row_string,
+                            str(arr.max()),
+                            arr.tostring()))
+    """
+    return gray
+
+def img2gray(im):
+    gray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
+    return gray
+
+def gray2rgb(im):
+    gray = cv2.cvtColor(im,cv2.COLOR_GRAY2BGR)
+    return gray
 
 def read_img(path):
     return cv2.imread(path)
@@ -52,28 +95,11 @@ def trim(im):
     mask = np.zeros(im.shape,np.uint8)
     cv2.drawContours(mask,[cnt],0,255,-1)
 
-    image = cv2.bitwise_and(im, im, mask=mask)
-
-    return image
-    """
-    ret,thresh = cv2.threshold(img,0,255,0)
-    _,contours,__ = cv2.findContours(thresh,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
-    areas = [cv2.contourArea(c) for c in contours]
-    max_index = np.argmax(areas)
-
-    # Get largest contour - extract breast
-    cnt=contours[max_index]
-    mask = np.zeros(img.shape,np.uint8)
-    cv2.drawContours(mask,[cnt],0,255,-1)
+    im = cv2.bitwise_and(im, im, mask=mask)
 
     x,y,w,h = cv2.boundingRect(cnt)
 
-    # 1st final image with breast ROI extracted
-    img = cv2.bitwise_and(img, img, mask=mask)
-    trimmed = img[y:y+h, x:x+w]
-
-    return trimmed
-    """
+    return im[y:y+h, x:x+w]
 
 def padding(img):
     max_size = len(img)
