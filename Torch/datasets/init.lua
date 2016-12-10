@@ -30,7 +30,7 @@ function M.generate(opt)
 end
 
 function M.create(opt, split)
-   local cachePath = paths.concat('preprocessedData', opt.gen, opt.dataset .. '.t7')
+   local cachePath = paths.concat('/','preprocessedData/dreamCh', opt.gen, opt.dataset .. '.t7')
    if not paths.filep(cachePath) or not isvalid(opt, cachePath) then
       print('The torch data file for the challenge data was not generated')
 --      paths.mkdir('modelState/gen/')
