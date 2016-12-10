@@ -18,12 +18,12 @@ data:
         train: /data/KUMC-guro
         metadata:
             dir: /data/KUMC-guro/metadata
-            images_crosswalk: images_crosswalk.balenced.tsv
+            images_crosswalk: images_crosswalk.undersampling.tsv
     KUMC-anam:
         train: /data/KUMC-anam
         metadata:
             dir: /data/KUMC-anam/metadata
-            images_crosswalk: images_crosswalk.tsv
+            images_crosswalk: images_crosswalk.undersampling.tsv
 
 # Preprocessing pipeline & applied methods
 preprocessing:

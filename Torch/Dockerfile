@@ -12,3 +12,7 @@ RUN git clone https://github.com/torch/distro.git /root/torch --recursive
 RUN cd /root/torch && \
     bash install-deps && \
     ./install.sh
+
+RUN luarocks install optnet && \
+    luarocks install cunn && \
+    luarocks install cudnn , cutorch, image, nn
