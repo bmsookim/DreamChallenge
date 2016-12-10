@@ -10,6 +10,7 @@ import csv
 import shutil
 import traceback
 
+from pprint import pprint
 from timeit import default_timer as timer
 
 # installed packages
@@ -23,7 +24,7 @@ import util
 import Preprocessor
 from   Preprocessor import alignment
 from   Preprocessor import matcher
-from   Preprocessor import extractor
+#from   Preprocessor import extractor
 
 
 logger = util.build_logger()
@@ -41,21 +42,8 @@ class App(object):
         self.data_dir = self.config['data'][args.corpus][args.dataset]
         #self.data_dir = self.config['data'][args.dataset]
 
-        self.__assign_proc_cnt()
+        self.proc_cnt = self.args.processor
         self.display_setups()
-
-    def __assign_proc_cnt(self):
-        machine_proc_cnt = util.get_cpu_cnt()
-        args_proc_cnt    = self.args.processor
-
-        # no assigned args.processor argument
-        #  use machine_proc_cnt - 1 (min=1)
-        if self.args.processor is None:
-            self.proc_cnt = machine_proc_cnt - 1
-            if self.proc_cnt < 1:
-                self.proc_cnt = 1
-        else:
-            self.proc_cnt = args_proc_cnt
 
     """
     Build Image and Exam  Data from dicom files or metadata file
@@ -353,8 +341,42 @@ class App(object):
         return img_cnt
 
     def display_setups(self):
-        # TODO:
-        pass
+        from colorama import init
+        from colorama import Fore, Back, Style
+        init()
+
+        print(Fore.CYAN + "# ENVIRONMENT" + Style.RESET_ALL)
+        print("|-- {:10}".format('processor'),  self.args.processor)
+        print("|-- {:10}".format('gpu'),        self.args.gpu)
+
+        print(Fore.CYAN + "# DATASET" + Style.RESET_ALL)
+        print("|-- {:10}".format('corpus'),     self.args.corpus)
+        print("|-- {:10}".format('dataset'),    self.args.dataset)
+
+        print(Fore.CYAN + "# SAMPLING" + Style.RESET_ALL)
+        print("|-- {:10}".format('method'),     self.config['sampling'])
+
+        print(Fore.CYAN + "# PRE-PROCESSING PIPELINE" + Style.RESET_ALL)
+        for module in self.config['pipeline']['prev_roi']:
+            print("\t" + Style.BRIGHT + module + Style.RESET_ALL)
+            print("\t|\t> ", self.config['modules'][module])
+        if self.config['pipeline']['roi']:
+            print("\troi extraction " + Style.BRIGHT + "(ON)" + Style.RESET_ALL)
+            for target in self.config['modules']['roi']['targets']:
+                print("\t\t|-- " + target, self.config['modules']['roi'][target])
+                #print("\t|\t> ", self.config['modules']['roi'][target])
+        else:
+            print("\t|-- roi extraction (OFF)")
+        for module in self.config['pipeline']['post_roi']:
+            print("\t" + Style.BRIGHT + module + Style.RESET_ALL)
+            print("\t|\t> ", self.config['modules'][module])
+
+        print(Fore.CYAN + "# RESULT" + Style.RESET_ALL)
+        print("|-- generating form   ", self.args.form)
+        print("|-- generating valid  ", self.args.valid)
+        print("|-- directory")
+        print("\t|-- {:10}".format('result'),     self.config['resultDir'])
+        print("\t|-- {:10}".format('log'),        self.config['logDir'])
 
 if __name__ == '__main__':
     import ConfigParser
@@ -362,16 +384,25 @@ if __name__ == '__main__':
 
     # program argument
     parser = argparse.ArgumentParser()
+    #### Environment
+    parser.add_argument('-p', '--processor',
+            type=int,
+            required=False,
+            default = util.get_cpu_cnt(),
+            help='how many use processores')
+    parser.add_argument('-g', '--gpu',
+            type = int,
+            required=False,
+            default=1,
+            help='use GPU? in ROI extraction')
+    #### Dataset
     parser.add_argument('-c', '--corpus',
             required=True,
             help='will be used in preprocessing phase')
     parser.add_argument('-d', '--dataset',
             required=True,
             help='dataset in corpus')
-    parser.add_argument('-p', '--processor',
-            type=int,
-            required=False,
-            help='how many use processores')
+    #### Result
     parser.add_argument('-f', '--form',
             required=True,
             help='class, robust')
@@ -379,6 +410,7 @@ if __name__ == '__main__':
             type=int,
             required=False,
             help='generate validset from training')
+    # TODO: remove -b flag
     parser.add_argument('-b', '--balanced',
             required=False,
             help='force balancing train & test')
@@ -390,4 +422,4 @@ if __name__ == '__main__':
         config = yaml.safe_load(f.read())
 
     preprocessor = App(args=args, config=config)
-    preprocessor.preprocessing()
+    #preprocessor.preprocessing()
