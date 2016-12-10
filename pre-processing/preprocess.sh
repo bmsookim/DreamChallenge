@@ -19,5 +19,5 @@ RESULT_DIR='/preprocessedData'
 echo "## Files in "$RESULT_DIR"/dreamCh"
 ls $RESULT_DIR/dreamCh
 echo "## Files in "$RESULT_DIR"/gen"
-ls $RESULT_DIR/gen
+ls $RESULT_DIR/dreamCh/gen
 
