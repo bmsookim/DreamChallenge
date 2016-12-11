@@ -79,12 +79,13 @@ def trim(im, config):
 
     return im[y:y+h, x:x+w]
 
+#TODO:fix bug (in single channel
 def padding(img, config):
     size = max(len(img), len(img[0]))
-    empty= np.zeros(img.shape, dtype=img.dtype)
+    empty= np.zeros((size, size, img.shape[2]), dtype=img.dtype)
 
-    for i in range(len(img)):
-        empty[i] = img[i]
+    for i in range(len(img[0])):
+        empty[0][i] = img[0][i]
 
     return empty
 

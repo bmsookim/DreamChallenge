@@ -73,13 +73,19 @@ ENV LUA_CPATH='/root/torch/install/lib/?.so;'$LUA_CPATH
 RUN apt-get install python-opencv -y
 
 # TODO: mv install.sh
+WORKDIR /
+COPY install.sh ./
+RUN ./install.sh
 
 # move preprocessing scripts
 ARG CACHEBUST=0
 WORKDIR /
 COPY requirements.txt  ./
 RUN pip install -r requirements.txt
-COPY DREAM_DM_preprocessing.py util.py preprocess.sh ./
+
+COPY *.py preprocess.sh ./
+COPY model ./model
 COPY Preprocessor ./Preprocessor
-COPY config ./config
+COPY Dataloader ./
 COPY Torch ./Torch
+COPY config ./config

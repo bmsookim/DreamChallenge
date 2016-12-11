@@ -24,6 +24,7 @@ import Preprocessor
 from   Preprocessor import extractor
 
 from   Dataloader   import loader
+from   Dataloader   import sampler
 
 
 logger = util.build_logger()
@@ -43,13 +44,26 @@ class App(object):
 
         self.display_setups()
 
+        self.tmp_dir    = '/'.join([
+            self.config['resultDir'],
+            'tmp'
+        ])
+        util.mkdir(self.tmp_dir)
     """
     Preprocessing Main Pipeline (end-point)
     """
     def preprocessing(self):
+        # sampling
+        _sampler = getattr(sampler, self.config['sampling'])
+
         # load data
         config_metadata = config['data'][self.args.corpus]['metadata']
-        s_dict, self.e_dict = loader.load(self.data_dir, config_metadata)
+        s_dict, self.e_dict = loader.load(
+                                self.args.corpus,
+                                self.data_dir,
+                                self.tmp_dir,
+                                config_metadata,
+                                _sampler)
         logger.info('The size of data: {0}'.format(len(s_dict)))
 
         if self.args.valid == 1:
@@ -62,47 +76,6 @@ class App(object):
             logger.info('preprocessing start : {0}'.format(self.args.dataset))
             self.preprocessing_dataset(s_dict, self.args.dataset)
 
-    def preprocessing_dataset(self, s_dict, dataset_name):
-        tmp_dir    = '/'.join([
-            self.config['resultDir'],
-            'tmp'
-        ])
-        target_dir = '/'.join([
-            self.config['resultDir'],
-            self.args.corpus,
-            dataset_name
-        ])
-        try:    shutil.rmtree(target_dir)
-        except: pass
-
-        util.mkdir(target_dir)
-        util.mkdir(tmp_dir)
-
-
-        logger.debug('split subject_dict start')
-        if self.proc_cnt == 1:
-            proc_feeds = [s_dict]
-        else:
-            # TODO:round? floor?
-            feed_size = int(len(s_dict) / self.proc_cnt) + 1
-            proc_feeds = util.split_dict(s_dict, feed_size)
-        logger.debug('split subject_dict finish')
-
-        procs = list()
-        for proc_num in range(self.proc_cnt):
-            proc_feed = proc_feeds[proc_num]
-
-            proc = multiprocessing.Process(target=self.preprocessing_single_proc,
-                    args=(proc_feed, self.data_dir, target_dir, tmp_dir, proc_num))
-
-            procs.append(proc)
-            proc.start()
-
-        for proc in procs:
-            proc.join()
-
-        self.merge_metadata(target_dir, tmp_dir)
-
     def split_train_valid(self, s_dict):
         s_size = len(s_dict)
         train_size = int(s_size * 0.8)
@@ -111,12 +84,56 @@ class App(object):
 
         return train_valid[0],train_valid[1]
 
-    def preprocessing_single_proc(self, s_dict, source_dir, target_dir, tmp_dir, proc_num=0):
+    def preprocessing_dataset(self, s_dict, dataset_name):
+        target_dir = '/'.join([
+            self.config['resultDir'],
+            self.args.corpus,
+            dataset_name
+        ])
+        try:    shutil.rmtree(target_dir)
+        except: pass
+        util.mkdir(target_dir)
+        ##################################################3
+        logger.debug('split subject_dict start')
+        if self.proc_cnt == 1:
+            proc_feeds = [s_dict]
+        else:
+            feed_size = int(len(s_dict) / self.proc_cnt) + 1
+            proc_feeds = util.split_dict(s_dict, feed_size)
+        logger.debug('split subject_dict finish')
+
+        procs = list()
+        for proc_num in range(self.proc_cnt):
+            proc_feed = proc_feeds[proc_num]
+
+            proc = multiprocessing.Process(target=
+                    self.preprocessing_single_proc,
+                    args=(
+                        proc_feed,
+                        self.data_dir,
+                        target_dir,
+                        self.tmp_dir,
+                        proc_num
+                    ))
+
+            procs.append(proc)
+            proc.start()
+
+        for proc in procs:
+            proc.join()
+
+        self.merge_metadata(target_dir, self.tmp_dir)
+
+    def preprocessing_single_proc(self, s_dict,
+            source_dir, target_dir, tmp_dir, proc_num=0):
         # create extractors based on configuration
-        ext = { target: extractor.factory(
-                            target,
-                            self.config['modules']['roi'][target])
-                for target in self.config['modules']['roi']['targets'] }
+        if self.config['pipeline']['roi']:
+            ext = { target: extractor.factory(
+                                target,
+                                self.config['modules']['roi'][target])
+                    for target in self.config['modules']['roi']['targets'] }
+        else:
+            ext = None
 
         logger.info('Proc{proc_num} start'.format(proc_num = proc_num))
         start = timer()
@@ -164,8 +181,6 @@ class App(object):
 
     def preprocessing_dcm(self, dcm, l, ext, proc_num=0):
         logger.debug('start: {method}'.format(method='handle dcm'))
-
-        # convert dicom to image and preprocess image
         imgs = dict()
 
         # convert dicom to (gray scale) image
@@ -222,7 +237,7 @@ class App(object):
                                 meta['s_id'],
                                 meta['exam_idx'],
                                 meta['l']])
-            img_path= '/'.join([img_dir, v + '.png'])
+            img_path= '/'.join([img_dir, meta['v'] + '.png'])
         else:
             logger.error('invalid form: {form}'.format(form=self.args.form))
             sys.exit(-1)

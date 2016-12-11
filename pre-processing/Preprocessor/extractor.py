@@ -1,4 +1,3 @@
-
 import _init_paths
 from fast_rcnn.config import cfg
 from fast_rcnn.test import im_detect
@@ -14,6 +13,8 @@ import xml.etree.ElementTree as ET
 
 import scipy.sparse
 import scipy.io as sio
+
+os.environ['GLOG_minloglevel'] = '3'
 
 def factory(method, config):
     if method == 'mass':
