@@ -6,21 +6,25 @@ from __future__ import print_function
 import glob
 import sys
 import multiprocessing
-import csv
 import shutil
+import traceback
 
+from pprint import pprint
 from timeit import default_timer as timer
 
 # installed packages
 import yaml
 import dicom
+import numpy as np
 
 # implemented packages
 import util
 
 import Preprocessor
-from   Preprocessor import alignment
-from   Preprocessor import matcher
+from   Preprocessor import extractor
+
+from   Dataloader   import loader
+from   Dataloader   import sampler
 
 
 logger = util.build_logger()
@@ -36,86 +40,30 @@ class App(object):
             sys.exit(-1)
 
         self.data_dir = self.config['data'][args.corpus][args.dataset]
-        #self.data_dir = self.config['data'][args.dataset]
+        self.proc_cnt = self.args.processor
 
-        self.__assign_proc_cnt()
         self.display_setups()
 
-    def __assign_proc_cnt(self):
-        machine_proc_cnt = util.get_cpu_cnt()
-        args_proc_cnt    = self.args.processor
-
-        # no assigned args.processor argument
-        #  use machine_proc_cnt - 1 (min=1)
-        if self.args.processor is None:
-            self.proc_cnt = machine_proc_cnt - 1
-            if self.proc_cnt < 1:
-                self.proc_cnt = 1
-        else:
-            self.proc_cnt = args_proc_cnt
-            if self.proc_cnt > machine_proc_cnt or self.proc_cnt < 1:
-                logger.error('Invalid used proc_cnt: {0}'.format(self.args.processor))
-                sys.exit(-1)
-
-    """
-    Build Image and Exam  Data from dicom files or metadata file
-    """
-    def build_metadata(self):
-        logger.info('load dcm file list in {0}'.format(self.data_dir))
-
-        return (self.__build_image_data_from_metadata(),
-                self.__build_exams_data_from_metadata())
-
-
-    def __build_image_data_from_metadata(self):
-        config_metadata = self.config['data'][self.args.corpus]['metadata']
-        cross_walk_file_path = '/'.join([
-            config_metadata['dir'],
-            config_metadata['images_crosswalk']
+        self.tmp_dir    = '/'.join([
+            self.config['resultDir'],
+            'tmp'
         ])
-
-        s_dict = dict()
-        with open(cross_walk_file_path, 'rt') as f:
-            walker = csv.DictReader(f, delimiter='\t')
-            for row in walker:
-                k = (row['subjectId'], row['examIndex'])
-
-                if k not in s_dict:
-                    s_dict[k] = dict()
-                if row['view'] not in s_dict[k]:
-                    s_dict[k][row['view']] = dict()
-
-                s_dict[k][row['view']][row['laterality']] = {
-                    'img_idx': row['imageIndex'],
-                    'fname'  : row['filename']
-                }
-
-        return s_dict
-
-    def __build_exams_data_from_metadata(self):
-        config_metadata = self.config['data'][self.args.corpus]['metadata']
-        exams_file_path = '/'.join([
-            config_metadata['dir'],
-            config_metadata['exams_metadata']
-        ])
-
-        e_dict = dict()
-        with open(exams_file_path, 'rt') as f:
-            walker = csv.DictReader(f, delimiter='\t')
-            for row in walker:
-                k = (row['subjectId'], row['examIndex'])
-
-                e_dict[k] = row
-
-        return e_dict
-
+        util.mkdir(self.tmp_dir)
     """
     Preprocessing Main Pipeline (end-point)
     """
     def preprocessing(self):
+        # sampling
+        _sampler = getattr(sampler, self.config['sampling'])
 
-        # subject_dict / exams_dict
-        s_dict, self.e_dict = self.build_metadata()
+        # load data
+        config_metadata = config['data'][self.args.corpus]['metadata']
+        s_dict, self.e_dict = loader.load(
+                                self.args.corpus,
+                                self.data_dir,
+                                self.tmp_dir,
+                                config_metadata,
+                                _sampler)
         logger.info('The size of data: {0}'.format(len(s_dict)))
 
         if self.args.valid == 1:
@@ -128,47 +76,6 @@ class App(object):
             logger.info('preprocessing start : {0}'.format(self.args.dataset))
             self.preprocessing_dataset(s_dict, self.args.dataset)
 
-    def preprocessing_dataset(self, s_dict, dataset_name):
-        tmp_dir    = '/'.join([
-            self.config['resultDir'],
-            'tmp'
-        ])
-        target_dir = '/'.join([
-            self.config['resultDir'],
-            self.args.corpus,
-            dataset_name
-        ])
-        try:    shutil.rmtree(target_dir)
-        except: pass
-
-        util.mkdir(target_dir)
-        util.mkdir(tmp_dir)
-
-
-        logger.debug('split subject_dict start')
-        if self.proc_cnt == 1:
-            proc_feeds = [s_dict]
-        else:
-            # TODO:round? floor?
-            feed_size = int(len(s_dict) / self.proc_cnt) + 1
-            proc_feeds = util.split_dict(s_dict, feed_size)
-        logger.debug('split subject_dict finish')
-
-        procs = list()
-        for proc_num in range(self.proc_cnt):
-            proc_feed = proc_feeds[proc_num]
-
-            proc = multiprocessing.Process(target=self.preprocessing_single_proc,
-                    args=(proc_feed, self.data_dir, target_dir, tmp_dir, proc_num))
-
-            procs.append(proc)
-            proc.start()
-
-        for proc in procs:
-            proc.join()
-
-        self.merge_metadata(target_dir, tmp_dir)
-
     def split_train_valid(self, s_dict):
         s_size = len(s_dict)
         train_size = int(s_size * 0.8)
@@ -177,12 +84,61 @@ class App(object):
 
         return train_valid[0],train_valid[1]
 
-    def preprocessing_single_proc(self, s_dict, source_dir, target_dir, tmp_dir, proc_num=0):
+    def preprocessing_dataset(self, s_dict, dataset_name):
+        target_dir = '/'.join([
+            self.config['resultDir'],
+            self.args.corpus,
+            dataset_name
+        ])
+        try:    shutil.rmtree(target_dir)
+        except: pass
+        util.mkdir(target_dir)
+        ##################################################3
+        logger.debug('split subject_dict start')
+        if self.proc_cnt == 1:
+            proc_feeds = [s_dict]
+        else:
+            feed_size = int(len(s_dict) / self.proc_cnt) + 1
+            proc_feeds = util.split_dict(s_dict, feed_size)
+        logger.debug('split subject_dict finish')
+
+        procs = list()
+        for proc_num in range(self.proc_cnt):
+            proc_feed = proc_feeds[proc_num]
+
+            proc = multiprocessing.Process(target=
+                    self.preprocessing_single_proc,
+                    args=(
+                        proc_feed,
+                        self.data_dir,
+                        target_dir,
+                        self.tmp_dir,
+                        proc_num
+                    ))
+
+            procs.append(proc)
+            proc.start()
+
+        for proc in procs:
+            proc.join()
+
+        self.merge_metadata(target_dir, self.tmp_dir)
+
+    def preprocessing_single_proc(self, s_dict,
+            source_dir, target_dir, tmp_dir, proc_num=0):
+        # create extractors based on configuration
+        if self.config['pipeline']['roi']:
+            ext = { target: extractor.factory(
+                                target,
+                                self.config['modules']['roi'][target])
+                    for target in self.config['modules']['roi']['targets'] }
+        else:
+            ext = None
+
         logger.info('Proc{proc_num} start'.format(proc_num = proc_num))
         start = timer()
 
         meta_f = open('/'.join([tmp_dir, 'metadata_' + str(proc_num) + '.tsv']),'w')
-        cnt = 0
         for (s_id, exam_idx) in s_dict.keys():
             k = (s_id, exam_idx)
 
@@ -199,54 +155,95 @@ class App(object):
                     dcm = dicom.read_file('/'.join([source_dir, info['fname']]))
 
                     # run image preprocessing and save result
-                    img = self.preprocessing_dcm(dcm, l, proc_num)
-                    exams = self.e_dict[k]
+                    img = self.preprocessing_dcm(dcm, l, ext, proc_num)
 
-                    self.write_img(img, exams, {
+                    if self.e_dict == None:
+                        cancer_label = info['cancer']
+                    else:
+                        cancer_label = self.e_dict[k]['cancer' + l]
+
+                    self.write_img(img, cancer_label, {
                         's_id': s_id,
                         'exam_idx': exam_idx,
                         'v': v,
                         'l': l
                         }, target_dir)
 
-                    meta_f.write('\t'.join([s_id, exam_idx, v, l, exams['cancer' + l]]))
+                    meta_f.write('\t'.join([s_id, exam_idx, v, l, cancer_label]))
                     meta_f.write('\n')
-            cnt+=1
+        meta_f.close()
 
         logger.info('Proc{proc_num} Finish : size[{p_size}]\telapsed[{elapsed_time}]'.format(
             proc_num = proc_num,
             p_size = len(s_dict),
             elapsed_time = timer() - start
             ))
-        meta_f.close()
 
-    def preprocessing_dcm(self, dcm, l, proc_num=0):
+    def preprocessing_dcm(self, dcm, l, ext, proc_num=0):
         logger.debug('start: {method}'.format(method='handle dcm'))
-        img = Preprocessor.dcm2cvimg(dcm, proc_num)
+        imgs = dict()
 
-        # execute pipeline methods by configuration
-        for method in self.config['preprocessing']['modify']['pipeline']:
-            if method == 'flip' and  l == 'R': continue
-            logger.debug('start: {method}'.format(method=method))
-            img = getattr(Preprocessor, method)(img)
-            logger.debug('end  : {method}'.format(method=method))
+        # convert dicom to (gray scale) image
+        imgs['gray'] = Preprocessor.dcm2cvimg(dcm, proc_num)
 
-        return img
+        # run pipeline before roi extraction
+        for module in self.config['pipeline']['prev_roi']:
+            logger.debug('Run module  : {module}'.format(module=module))
+            imgs['gray'] = getattr(Preprocessor, module)(
+                    imgs['gray'],
+                    self.config['modules'][module]
+            )
 
-    def write_img(self, img, exams, meta, target_dir):
+        # run roi extraction
+        if self.config['pipeline']['roi']:
+            logger.debug('Run module  : ROI extraction')
+            imgs['rgb'] = Preprocessor.gray2rgb(imgs['gray'])
+            for target in self.config['modules']['roi']['targets']:
+                imgs[target] = ext[target].get_mask(imgs['rgb'])
+
+        # create image channel stack
+        im_layers = []
+        for channel in self.config['channel']:
+            im_layer = imgs[channel]
+            # if current im_layer is not single channel
+            if len(im_layer.shape) != 2:
+                im_layer = Preprocessor.img2gray(im_layer)
+            im_layers.append(im_layer)
+        im = np.stack(im_layers, axis=-1)
+
+        # run pipeline after roi extraction
+        for module in self.config['pipeline']['post_roi']:
+            logger.debug('Run module  : {module}'.format(module=module))
+            im = getattr(Preprocessor, module)(
+                    im,
+                    self.config['modules'][module]
+            )
+
+        return im
+
+    def write_img(self, img, cancer_label, meta, target_dir):
         if self.args.form == 'class':
-            cancer_label = exams['cancer' + meta['l']]
             img_dir = '/'.join([target_dir, cancer_label])
-            util.mkdir(img_dir)
-            Preprocessor.write_img('/'.join([img_dir,
-                '_'.join([meta['s_id'], meta['exam_idx'], meta['v'], meta['l']])  + '.png']), img)
+            img_path= '/'.join([img_dir,
+                                '_'.join([
+                                    meta['s_id'],
+                                    meta['exam_idx'],
+                                    meta['v'],
+                                    meta['l']
+                                    ]) + '.png'
+                                ])
         elif self.args.form == 'robust':
-            img_dir = '/'.join([target_dir, meta['s_id'], meta['exam_idx'], meta['l']])
-            util.mkdir(img_dir)
-            Preprocessor.write_img('/'.join([img_dir, v + '.png']), img)
+            img_dir = '/'.join([target_dir,
+                                meta['s_id'],
+                                meta['exam_idx'],
+                                meta['l']])
+            img_path= '/'.join([img_dir, meta['v'] + '.png'])
         else:
             logger.error('invalid form: {form}'.format(form=self.args.form))
             sys.exit(-1)
+
+        util.mkdir(img_dir)
+        Preprocessor.write_img(img_path, img)
 
     def merge_metadata(self, target_dir, tmp_dir):
         img_cnt = 0
@@ -260,22 +257,43 @@ class App(object):
 
         return img_cnt
 
-    def alignment_both(self, l_img, r_img):
-        # feature extraction & matching
-        features, matches, masks = matcher.flann(l_img, r_img)
-
-        # adjust image
-        img1, img2 = alignment.adjust(features, matches, masks)
-        return img2
-
-    def extract_roi(self, img):
-        # from hwejin
-        pass
-
-
     def display_setups(self):
-        # TODO:
-        pass
+        from colorama import init
+        from colorama import Fore, Back, Style
+        init()
+
+        print(Fore.CYAN + "# ENVIRONMENT" + Style.RESET_ALL)
+        print("|-- {:10}".format('processor'),  self.args.processor)
+        print("|-- {:10}".format('gpu'),        self.args.gpu)
+
+        print(Fore.CYAN + "# DATASET" + Style.RESET_ALL)
+        print("|-- {:10}".format('corpus'),     self.args.corpus)
+        print("|-- {:10}".format('dataset'),    self.args.dataset)
+
+        print(Fore.CYAN + "# SAMPLING" + Style.RESET_ALL)
+        print("|-- {:10}".format('method'),     self.config['sampling'])
+
+        print(Fore.CYAN + "# PRE-PROCESSING PIPELINE" + Style.RESET_ALL)
+        for module in self.config['pipeline']['prev_roi']:
+            print("\t" + Style.BRIGHT + module + Style.RESET_ALL)
+            print("\t|\t> ", self.config['modules'][module])
+        if self.config['pipeline']['roi']:
+            print("\troi extraction " + Style.BRIGHT + "(ON)" + Style.RESET_ALL)
+            for target in self.config['modules']['roi']['targets']:
+                print("\t\t|-- " + target, self.config['modules']['roi'][target])
+                #print("\t|\t> ", self.config['modules']['roi'][target])
+        else:
+            print("\t|-- roi extraction (OFF)")
+        for module in self.config['pipeline']['post_roi']:
+            print("\t" + Style.BRIGHT + module + Style.RESET_ALL)
+            print("\t|\t> ", self.config['modules'][module])
+
+        print(Fore.CYAN + "# RESULT" + Style.RESET_ALL)
+        print("|-- generating form   ", self.args.form)
+        print("|-- generating valid  ", self.args.valid)
+        print("|-- directory")
+        print("\t|-- {:10}".format('result'),     self.config['resultDir'])
+        print("\t|-- {:10}".format('log'),        self.config['logDir'])
 
 if __name__ == '__main__':
     import ConfigParser
@@ -283,16 +301,25 @@ if __name__ == '__main__':
 
     # program argument
     parser = argparse.ArgumentParser()
+    #### Environment
+    parser.add_argument('-p', '--processor',
+            type=int,
+            required=False,
+            default = util.get_cpu_cnt(),
+            help='how many use processores')
+    parser.add_argument('-g', '--gpu',
+            type = int,
+            required=False,
+            default=1,
+            help='use GPU? in ROI extraction')
+    #### Dataset
     parser.add_argument('-c', '--corpus',
             required=True,
             help='will be used in preprocessing phase')
     parser.add_argument('-d', '--dataset',
             required=True,
             help='dataset in corpus')
-    parser.add_argument('-p', '--processor',
-            type=int,
-            required=False,
-            help='how many use processores')
+    #### Result
     parser.add_argument('-f', '--form',
             required=True,
             help='class, robust')
@@ -300,6 +327,10 @@ if __name__ == '__main__':
             type=int,
             required=False,
             help='generate validset from training')
+    # TODO: remove -b flag
+    parser.add_argument('-b', '--balanced',
+            required=False,
+            help='force balancing train & test')
 
     args = parser.parse_args()
 

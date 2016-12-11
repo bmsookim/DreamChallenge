@@ -184,7 +184,6 @@ fabric.properties
 # .idea/misc.xml 
 # *.ipr
 
-*.yaml
 
 tmp
 preprocessing
@@ -194,3 +193,5 @@ testData
 metadata
 log
 py-faster-rcnn
+model
+*.yaml

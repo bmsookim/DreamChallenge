@@ -49,16 +49,16 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 ENV CUDA_HOME=/usr/local/cuda
 
 
-WORKDIR /opt/opencv
-RUN mkdir build
-WORKDIR /opt/opencv/build
-RUN pip install numpy
+#WORKDIR /opt/opencv
+#RUN mkdir build
+#WORKDIR /opt/opencv/build
+#RUN pip install numpy
 
-# clone and setup py-faster-rcnn (from custom repo)
+# install torch
 WORKDIR /opt
 RUN git clone https://github.com/torch/distro.git /root/torch --recursive
 RUN cd /root/torch && \
-    bash install-deps && \
+   bash install-deps && \
     ./install.sh
 
 WORKDIR /root/torch
@@ -69,32 +69,25 @@ ENV LD_LIBRARY_PATH=/root/torch/install/lib:$LD_LIBRARY_PATH
 ENV DYLD_LIBRARY_PATH=/root/torch/install/lib:$DYLD_LIBRARY_PATH
 ENV LUA_CPATH='/root/torch/install/lib/?.so;'$LUA_CPATH
 
-
+# install opencv
 RUN apt-get install python-opencv -y
 
-# faster-rcnn project
+# install py-faster-rcnn
 WORKDIR /
-    # install dependencies for installing caffe
-RUN pip install Cython easydict && \
-    apt-get install -y \
-    libprotobuf-dev \
-    libleveldb-dev \
-    libsnappy-dev \
-    libopencv-dev \
-    libhdf5-serial-dev \
-    protobuf-compiler\
-    libgflags-dev libgoogle-glog-dev liblmdb-dev \
-    libatlas-dev liblapack-dev && \
-    apt-get install --no-install-recommends libboost-all-dev -y
-    # clone faster-rcnn
-RUN git clone https://github.com/rbgirshick/py-faster-rcnn.git
-    # clone caffe
-RUN cd /py-faster-rcnn && \
-    git clone https://github.com/BVLC/caffe.git ./caffe-fast-rcnn
-COPY installation/pycaffe.Makefile.config /py-faster-rcnn/caffe-fast-rcnn/Makefile.config
-    # install libs
-RUN cd /py-faster-rcnn/lib && \
-    make
-    # install caffe
-RUN cd /py-faster-rcnn/caffe-fast-rcnn && \
-    make -j8 && make pycaffe
+RUN mkdir installation
+COPY ./installation/pycaffe.Makefile.config ./installation/pycaffe.Makefile.config
+COPY install.sh ./
+RUN ./install.sh
+
+# move preprocessing scripts
+
+WORKDIR /
+COPY requirements.txt  ./
+RUN pip install -r requirements.txt
+
+COPY *.py preprocess.sh ./
+COPY model ./model
+COPY Preprocessor ./Preprocessor
+COPY Dataloader ./
+COPY Torch ./Torch
+COPY config ./config

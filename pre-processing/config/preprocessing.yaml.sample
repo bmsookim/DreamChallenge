@@ -10,32 +10,73 @@ data:
             images_crosswalk: images_crosswalk.tsv
 
     InBreast:
-        dicom: /data/DreamChallenge_mammo/INBreast/AllDICOMs
-        roi:    /data/DreamChallenge_mammo/INBreast/AllROIs
+        train: /data/DreamChallenge_mammo/INBreast/AllDICOMs
         metadata:
             dir: /data/DreamChallenge_mammo/INBreast/meta
             images_crosswalk: images_crosswalk.tsv
 
+    KUMC-guro:
+        train: /data/KUMC-guro
+        metadata:
+            dir: /data/KUMC-guro/metadata
+            images_crosswalk: images_crosswalk.tsv
 
-# Preprocessing pipeline & applied methods
-preprocessing:
-    pipeline: [modify, feature, adjsut]
+    KUMC-anam:
+        train: /data/KUMC-anam
+        metadata:
+            dir: /data/KUMC-anam/metadata
+            images_crosswalk: images_crosswalk.undersampling.tsv
 
-    # cv2.COLORMAP_[GRAY, BONE]
-
-    modify:
-        # method  [resize, flip, trim, padding]
-        pipeline: [resize, flip, trim, padding, colormap]
-        
-    feature:
-        # extraction  [orb, sift, surf]
-        extraction  : surf
-        # matchin:    [brute_force, flann]
-        matching    : flann
-    adjust:
-        rule        : pass
-        algo        : pass
-
-# Preprocessing result root directory path
+# result root directory path
 resultDir: /preprocessedData
 logDir   : /preprocessedData/log/
+
+
+# file sampling
+#   default | undersampling | manual (not yet)
+sampling: default
+
+# Preprocessing pipeline
+#   trim
+#   roi
+#   crop
+#   padding
+#   resize
+#   registration (not yet)
+pipeline: 
+    prev_roi: [trim, flip]
+    roi: True
+    post_roi: [crop, padding, resize]
+channel: [gray, mass, gray]
+
+modules:
+    # TRIM
+    trim: null
+    # FLIP
+    flip:
+        target: R
+        direction: H
+    # ROI
+    roi:
+        # target: [mass, calcification]
+        targets: [mass]
+        mass:
+            threshold: 0.7
+        calcification:
+            threshold: 0.5
+    # CROP
+    crop:
+        # method: centered | roi-boundary
+        method: roi-boundary
+        min   : 1024
+        padding: 10
+    # padding:
+    padding: null
+    # resize:
+    resize:
+        # method: NEAREST | LINEAR | AREA | CUBIC | LANCZOS4
+        interpolation: LINEAR
+        size:
+            width:  1024
+            height: 1024
+    colormap: null
