@@ -17,7 +17,7 @@ import scipy.io as sio
 
 def factory(method, config):
     if method == 'mass':
-        pass
+        return MassExtractor(config)
     elif method == 'calcification':
         pass
     else:
@@ -25,7 +25,7 @@ def factory(method, config):
         sys.exit(-1)
 
 class MassExtractor():
-    def __init__(self, gpu_id=0):
+    def __init__(self, config, gpu_id=0):
         self.CLASSES = ('__background__','mass')
         self.NETS    = {'MAMMO': ('MAMMO', 'MAMMO_faster_rcnn_final.caffemodel')}
 
@@ -41,12 +41,13 @@ class MassExtractor():
         cfg.TEST.HAS_RPN = True
         self.net = caffe.Net(self.prototxt, self.caffemodel, caffe.TEST)
 
+        self.CONF_THRESH= config['threshold']
+        self.NMS_THRESH = 0.3
+
     def get_mask(self, im):
         scores, boxes = im_detect(self.net, im)
         """Detect object classes in an image using pre-computed object proposals."""
         # Visualize detections for each class
-        CONF_THRESH = 0.2
-        NMS_THRESH = 0.3
 
 
         for cls_ind, cls in enumerate(self.CLASSES[1:]):
@@ -54,9 +55,9 @@ class MassExtractor():
             cls_boxes = boxes[:, 4*cls_ind:4*(cls_ind + 1)]
             cls_scores = scores[:, cls_ind]
             dets = np.hstack((cls_boxes, cls_scores[:, np.newaxis])).astype(np.float32)
-            keep = nms(dets, NMS_THRESH)
+            keep = nms(dets, self.NMS_THRESH)
             dets = dets[keep, :]
-            return self.vis_detections(im, cls, dets, thresh=CONF_THRESH)
+            return self.vis_detections(im, cls, dets, thresh=self.CONF_THRESH)
 
 
     def vis_detections(self, im, class_name, dets, thresh=.5):
@@ -158,13 +159,13 @@ def merge_coord(*args):
     return coor
 
 
-def crop_inner(coor, im, min_size=1024, margin=10):
+def crop_inner(coor, im, min_size=1024, padding=10):
     # height, width, channel
     h, w = im.shape[0], im.shape[1]
 
     coord = {
-        'Y': cal_crop_boundary(coor['Y'], h, min_size, margin, 'Y'),
-        'X': cal_crop_boundary(coor['X'], w, min_size, margin, 'X')
+        'Y': cal_crop_boundary(coor['Y'], h, min_size, padding, 'Y'),
+        'X': cal_crop_boundary(coor['X'], w, min_size, padding, 'X')
     }
 
     diff_y = coord['Y'][1] -coord['Y'][0]
@@ -182,7 +183,7 @@ def crop_inner(coor, im, min_size=1024, margin=10):
 
     return im
 
-def cal_crop_boundary(coor, og_size, min_size, margin=20, laterality='X'):
+def cal_crop_boundary(coor, og_size, min_size, padding=20, laterality='X'):
     #No min/max----------------------------
 
     if coor['max'] == None:
@@ -207,15 +208,15 @@ def cal_crop_boundary(coor, og_size, min_size, margin=20, laterality='X'):
         if end > og_size    :end = og_size
         if end < coor['max']:end = coor['max']
 
-    # apply margin
-    if start - margin < 0 :
+    # apply padding
+    if start - padding < 0 :
         start = 0
     else:
-        start -= margin
+        start -= padding
 
-    if end + margin > og_size:
+    if end + padding > og_size:
         end = og_size
     else:
-        end += margin
+        end += padding
 
     return [int(start), int(end)]

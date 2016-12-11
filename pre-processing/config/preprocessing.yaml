@@ -44,7 +44,7 @@ sampling: default
 #   resize
 #   registration (not yet)
 pipeline: 
-    prev_roi: [trim, flip, padding, resize, trim, padding]
+    prev_roi: [trim, flip]
     roi: True
     post_roi: [crop, padding, resize]
 channel: [gray, mass, gray]
@@ -53,11 +53,13 @@ modules:
     # TRIM
     trim: null
     # FLIP
-    flip: R
+    flip:
+        target: R
+        direction: H
     # ROI
     roi:
         # target: [mass, calcification]
-        targets: [mass, calcification]
+        targets: [mass]
         mass:
             threshold: 0.7
         calcification:

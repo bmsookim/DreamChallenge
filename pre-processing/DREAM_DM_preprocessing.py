@@ -24,7 +24,7 @@ import util
 import Preprocessor
 from   Preprocessor import alignment
 from   Preprocessor import matcher
-#from   Preprocessor import extractor
+from   Preprocessor import extractor
 
 
 logger = util.build_logger()
@@ -172,9 +172,9 @@ class App(object):
 
     def preprocessing_single_proc(self, s_dict, source_dir, target_dir, tmp_dir, proc_num=0):
         # create extractors based on configuration
-        ext = { target: extractor.facotry(
+        ext = { target: extractor.factory(
                             target,
-                            self.config['modules']['roi'])
+                            self.config['modules']['roi'][target])
                 for target in self.config['modules']['roi']['targets'] }
 
         logger.info('Proc{proc_num} start'.format(proc_num = proc_num))
@@ -232,7 +232,7 @@ class App(object):
 
         # run pipeline before roi extraction
         for module in self.config['pipeline']['prev_roi']:
-            logger.debug('Run module  : {method}'.format(method=method))
+            logger.debug('Run module  : {module}'.format(module=module))
             imgs['gray'] = getattr(Preprocessor, module)(
                     imgs['gray'],
                     self.config['modules'][module]
@@ -242,7 +242,7 @@ class App(object):
         if self.config['pipeline']['roi']:
             logger.debug('Run module  : ROI extraction')
             imgs['rgb'] = Preprocessor.gray2rgb(imgs['gray'])
-            for target in self.config['roi']['targets']:
+            for target in self.config['modules']['roi']['targets']:
                 imgs[target] = ext[target].get_mask(imgs['rgb'])
 
         # create image channel stack
@@ -250,57 +250,18 @@ class App(object):
         for channel in self.config['channel']:
             im_layer = imgs[channel]
             # if current im_layer is not single channel
-            if im_layer.shape[2] != 1:
+            if len(im_layer.shape) != 2:
                 im_layer = Preprocessor.img2gray(im_layer)
             im_layers.append(im_layer)
         im = np.stack(im_layers, axis=-1)
 
-
         # run pipeline after roi extraction
-        for module in self.config['pipeline']['prev_roi']:
-            logger.debug('Run module  : {method}'.format(method=method))
+        for module in self.config['pipeline']['post_roi']:
+            logger.debug('Run module  : {module}'.format(module=module))
             im = getattr(Preprocessor, module)(
                     im,
                     self.config['modules'][module]
             )
-
-        """
-        og_gray = Preprocessor.dcm2cvimg(dcm, proc_num)
-        og_gray = Preprocessor.trim(og_gray)
-        if l == 'R':
-            og_gray = Preprocessor.flip(og_gray)
-
-        og_rgb  = Preprocessor.gray2rgb(og_gray)
-
-        # mass layer
-        mass= ext['mass'].get_mask(og_rgb)
-        # calification layer
-        cal = np.zeros(og_gray.shape)
-
-        # integrating layers
-        im = np.stack((
-            og_gray,
-            Preprocessor.img2gray(mass),
-            og_gray
-        ), axis= -1)
-
-        # crop - based on ROI
-        nz_coor = extractor.find_nonezero(im)
-        nz_coor = extractor.merge_coord(nz_coor)
-        im = extractor.crop_inner(nz_coor, og_gray, 1024)
-        # crop - based on center
-        coor = extractor.find_center(im)
-        im   = extractor.crop(coor, im)
-
-        # padding
-        try:
-            im = Preprocessor.padding(im)
-            im = Preprocessor.resize(im)
-        except Exception:
-            pass
-            traceback.print_exc()
-            print(im.shape)
-        """
 
         return im
 
@@ -422,4 +383,4 @@ if __name__ == '__main__':
         config = yaml.safe_load(f.read())
 
     preprocessor = App(args=args, config=config)
-    #preprocessor.preprocessing()
+    preprocessor.preprocessing()
