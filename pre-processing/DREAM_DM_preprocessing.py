@@ -6,7 +6,6 @@ from __future__ import print_function
 import glob
 import sys
 import multiprocessing
-import csv
 import shutil
 import traceback
 
@@ -22,9 +21,9 @@ import numpy as np
 import util
 
 import Preprocessor
-from   Preprocessor import alignment
-from   Preprocessor import matcher
 from   Preprocessor import extractor
+
+from   Dataloader   import loader
 
 
 logger = util.build_logger()
@@ -40,75 +39,17 @@ class App(object):
             sys.exit(-1)
 
         self.data_dir = self.config['data'][args.corpus][args.dataset]
-        #self.data_dir = self.config['data'][args.dataset]
-
         self.proc_cnt = self.args.processor
+
         self.display_setups()
-
-    """
-    Build Image and Exam  Data from dicom files or metadata file
-    """
-    def build_metadata(self):
-        logger.info('load dcm file list in {0}'.format(self.data_dir))
-
-        return (self.__build_image_data_from_metadata(),
-                self.__build_exams_data_from_metadata())
-
-
-    def __build_image_data_from_metadata(self):
-        config_metadata = self.config['data'][self.args.corpus]['metadata']
-        cross_walk_file_path = '/'.join([
-            config_metadata['dir'],
-            config_metadata['images_crosswalk']
-        ])
-
-        s_dict = dict()
-        with open(cross_walk_file_path, 'rt') as f:
-            walker = csv.DictReader(f, delimiter='\t')
-            for row in walker:
-                k = (row['subjectId'], row['examIndex'])
-
-                if k not in s_dict:
-                    s_dict[k] = dict()
-                if row['view'] not in s_dict[k]:
-                    s_dict[k][row['view']] = dict()
-
-                s_dict[k][row['view']][row['laterality']] = {
-                    'img_idx': row['imageIndex'],
-                    'fname'  : row['filename']
-                }
-
-                if 'cancer' in row:
-                    s_dict[k][row['view']][row['laterality']]['cancer'] = row['cancer']
-
-        return s_dict
-
-    def __build_exams_data_from_metadata(self):
-        try:
-            config_metadata = self.config['data'][self.args.corpus]['metadata']
-            exams_file_path = '/'.join([
-                config_metadata['dir'],
-                config_metadata['exams_metadata']
-            ])
-
-            e_dict = dict()
-            with open(exams_file_path, 'rt') as f:
-                walker = csv.DictReader(f, delimiter='\t')
-                for row in walker:
-                    k = (row['subjectId'], row['examIndex'])
-
-                    e_dict[k] = row
-
-            return e_dict
-        except:
-            return None
 
     """
     Preprocessing Main Pipeline (end-point)
     """
     def preprocessing(self):
-        # subject_dict / exams_dict
-        s_dict, self.e_dict = self.build_metadata()
+        # load data
+        config_metadata = config['data'][self.args.corpus]['metadata']
+        s_dict, self.e_dict = loader.load(self.data_dir, config_metadata)
         logger.info('The size of data: {0}'.format(len(s_dict)))
 
         if self.args.valid == 1:
