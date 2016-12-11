@@ -58,7 +58,7 @@ ENV CUDA_HOME=/usr/local/cuda
 WORKDIR /opt
 RUN git clone https://github.com/torch/distro.git /root/torch --recursive
 RUN cd /root/torch && \
-    bash install-deps && \
+   bash install-deps && \
     ./install.sh
 
 WORKDIR /root/torch
@@ -72,13 +72,15 @@ ENV LUA_CPATH='/root/torch/install/lib/?.so;'$LUA_CPATH
 # install opencv
 RUN apt-get install python-opencv -y
 
-# TODO: mv install.sh
+# install py-faster-rcnn
 WORKDIR /
+RUN mkdir installation
+COPY ./installation/pycaffe.Makefile.config ./installation/pycaffe.Makefile.config
 COPY install.sh ./
 RUN ./install.sh
 
 # move preprocessing scripts
-ARG CACHEBUST=0
+
 WORKDIR /
 COPY requirements.txt  ./
 RUN pip install -r requirements.txt
