@@ -72,39 +72,7 @@ ENV LUA_CPATH='/root/torch/install/lib/?.so;'$LUA_CPATH
 # install opencv
 RUN apt-get install python-opencv -y
 
-# faster-rcnn project
-WORKDIR /
-    # install dependencies for installing caffe
-RUN pip install Cython easydict&& \
-    apt-get install -y \
-    libprotobuf-dev \
-    libleveldb-dev \
-    libsnappy-dev \
-    libopencv-dev \
-    libhdf5-serial-dev \
-    protobuf-compiler\
-    libgflags-dev libgoogle-glog-dev liblmdb-dev \
-    libatlas-base-dev liblapack-dev && \
-    apt-get install --no-install-recommends libboost-all-dev -y && \
-    # update configuration
-    ldconfig
-
-    # clone faster-rcnn
-RUN git clone https://github.com/rbgirshick/py-faster-rcnn.git
-    # clone caffe
-RUN cd /py-faster-rcnn && \
-    git clone https://github.com/BVLC/caffe.git ./caffe-fast-rcnn
-COPY installation/pycaffe.Makefile.config /py-faster-rcnn/caffe-fast-rcnn/Makefile.config
-    # install libs
-RUN cd /py-faster-rcnn/lib && \
-    make
-    # install caffe
-RUN cd /py-faster-rcnn/caffe-fast-rcnn && \
-    make -j8 && make pycaffe
-
-RUN pip install scikit-image && \
-    ln /dev/null /dev/raw1394 && \
-    ldconfig
+# TODO: mv install.sh
 
 # move preprocessing scripts
 ARG CACHEBUST=0
