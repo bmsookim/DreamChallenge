@@ -84,8 +84,7 @@ def padding(img, config):
     empty= np.zeros(img.shape, dtype=img.dtype)
 
     for i in range(len(img)):
-        for j in range(len(img[0])):
-            empty[i][j] = img[i][j]
+        empty[i] = img[i]
 
     return empty
 
