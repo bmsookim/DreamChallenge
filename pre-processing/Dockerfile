@@ -77,10 +77,25 @@ WORKDIR /
 RUN mkdir installation
 COPY ./installation/pycaffe.Makefile.config ./installation/pycaffe.Makefile.config
 COPY install.sh ./
+
+    # install dependencies
+RUN apt-get install -y \
+    libprotobuf-dev \
+    libleveldb-dev \
+    libsnappy-dev \
+    libopencv-dev \
+    libhdf5-serial-dev \
+    protobuf-compiler \
+    libgflags-dev \
+    libgoogle-glog-dev \
+    liblmdb-dev \
+    libatlas-base-dev
+RUN apt-get install --no-install-recommends libboost-all-dev -y
+RUN pip install easydict cython
+
 RUN ./install.sh
 
 # move preprocessing scripts
-
 WORKDIR /
 COPY requirements.txt  ./
 RUN pip install -r requirements.txt

@@ -2,9 +2,6 @@
 
 WORKSPACE=$PWD
 
-apt-get install libprotobuf-dev libleveldb-dev libsnappy-dev libopencv-dev libhdf5-serial-dev protobuf-compiler -y
-apt-get install --no-install-recommends libboost-all-dev -y
-
 # clone faster-rcnn
 # clone caffe
 git clone https://github.com/rbgirshick/py-faster-rcnn.git
