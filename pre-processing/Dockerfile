@@ -96,12 +96,12 @@ RUN pip install easydict cython
 RUN ./install.sh
 
 # move preprocessing scripts
+RUN apt-get install libyaml-cpp-dev -y
 WORKDIR /
 COPY requirements.txt  ./
 RUN pip install -r requirements.txt
 
 COPY *.py preprocess.sh ./
-COPY model ./model
 COPY Preprocessor ./Preprocessor
 COPY Dataloader ./
 COPY Torch ./Torch

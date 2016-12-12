@@ -19,3 +19,7 @@ cd $WORKSPACE/py-faster-rcnn/lib && \
 # install caffe
 cd $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn && \
     make -j8 && make pycaffe
+
+# get trained model
+wget http://infos.korea.ac.kr/crawl/model.tar.gz
+tar -zxvf model.tar.gz

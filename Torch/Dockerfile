@@ -8,7 +8,9 @@ ENV CUDA_HOME=/usr/local/cuda
 
 # install dependencies
 RUN apt-get update
-RUN apt-get install git -y
+RUN apt-get install -y \
+	git \
+	wget
 
 # install torch
 WORKDIR /opt
