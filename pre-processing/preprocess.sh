@@ -4,8 +4,9 @@ nvidia-smi
 # workdir : ./pre-processing/
 # image preprocessing
 #python DREAM_DM_preprocessing.py -c dreamCh -d train -f class -v  1 -p 1
-python DREAM_DM_preprocessing.py -c dreamCh -d train -f class -v 1 -p 1
+#python DREAM_DM_preprocessing.py -c dreamCh -d train -f class -v 1 -p 4
 #python DREAM_DM_preprocessing.py -c KUMC-guro -d train -f robust -p 4
+python DREAM_DM_preprocessing.py -c KUMC-guro -d train -f class -p 4
 
 # workdir : ./pre-processing/Torch
 cd Torch

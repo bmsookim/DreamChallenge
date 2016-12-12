@@ -188,6 +188,9 @@ class App(object):
 
         # run pipeline before roi extraction
         for module in self.config['pipeline']['prev_roi']:
+            if module == 'flip':
+                if l != self.config['modules'][module]['target']:
+                    continue
             logger.debug('Run module  : {module}'.format(module=module))
             imgs['gray'] = getattr(Preprocessor, module)(
                     imgs['gray'],
