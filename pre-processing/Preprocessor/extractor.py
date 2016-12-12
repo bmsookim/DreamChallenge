@@ -16,22 +16,23 @@ import scipy.io as sio
 
 os.environ['GLOG_minloglevel'] = '3'
 
-def factory(method, config):
+def factory(method, config, gpu_id=0):
     if method == 'mass':
-        return MassExtractor(config)
+        return MassExtractor(config, gpu_id)
     elif method == 'calcification':
-        pass
+        return CalExtractor(config, gpu_id)
     else:
         raise AttributeError('Invalid Method: {0}'.format(method))
         sys.exit(-1)
 
-class MassExtractor():
-    def __init__(self, config, gpu_id=0):
+
+class RoiExtractor(object):
+    def __init__(self, config, model_name, gpu_id=0):
         self.CLASSES = ('__background__','mass')
         self.NETS    = {'MAMMO': ('MAMMO', 'MAMMO_faster_rcnn_final.caffemodel')}
 
         self.prototxt = os.path.join('model', 'proto', 'faster_rcnn_test.pt')
-        self.caffemodel = os.path.join('model', 'MAMMO_mass.caffemodel')
+        self.caffemodel = os.path.join('model', model_name)
 
         if not os.path.isfile(self.caffemodel):
             raise IOError(('{:s} not found').format(self.caffemodel))
@@ -47,9 +48,6 @@ class MassExtractor():
 
     def get_mask(self, im):
         scores, boxes = im_detect(self.net, im)
-        """Detect object classes in an image using pre-computed object proposals."""
-        # Visualize detections for each class
-
 
         for cls_ind, cls in enumerate(self.CLASSES[1:]):
             cls_ind += 1 # because we skipped background
@@ -59,7 +57,6 @@ class MassExtractor():
             keep = nms(dets, self.NMS_THRESH)
             dets = dets[keep, :]
             return self.vis_detections(im, cls, dets, thresh=self.CONF_THRESH)
-
 
     def vis_detections(self, im, class_name, dets, thresh=.5):
         """Draw detected bounding boxes."""
@@ -78,10 +75,25 @@ class MassExtractor():
         for i in inds:
             bbox = dets[i, :4]
             score = dets[i, -1]
-            maskImage[int(bbox[1]):int (bbox[3]), int(bbox[0]):int(bbox[2])] = np.copy(og_im[int(bbox[1]):int (bbox[3]), int(bbox[0]):int(bbox[2])])
+            maskImage[
+                    int(bbox[1]):int (bbox[3]),
+                    int(bbox[0]):int(bbox[2])
+            ] = np.copy(og_im[int(bbox[1]):int (bbox[3]), int(bbox[0]):int(bbox[2])])
 
         #cv2.imwrite('./test.png', maskImage)
         return maskImage
+
+class MassExtractor(RoiExtractor):
+    MODEL_NAME = 'MAMMO_mass.caffemodel'
+
+    def __init__(self, config, gpu_id=0):
+        super(MassExtractor, self).__init__(config, MassExtractor.MODEL_NAME, gpu_id)
+
+class CalExtractor(RoiExtractor):
+    MODEL_NAME = 'MAMMO_cal.caffemodel'
+
+    def __init__(self, config, gpu_id=0):
+        super(CalExtractor, self).__init__(config, CalExtractor.MODEL_NAME, gpu_id)
 
 """
 Inner Cropping
@@ -221,3 +233,4 @@ def cal_crop_boundary(coor, og_size, min_size, padding=20, laterality='X'):
         end += padding
 
     return [int(start), int(end)]
+
