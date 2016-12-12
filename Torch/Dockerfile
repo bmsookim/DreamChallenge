@@ -6,6 +6,10 @@ ENV PATH=$PATH:/usr/local/cuda/bin
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 ENV CUDA_HOME=/usr/local/cuda
 
+# install dependencies
+RUN apt-get update
+RUN apt-get install git -y
+
 # install torch
 WORKDIR /opt
 RUN git clone https://github.com/torch/distro.git /root/torch --recursive
@@ -13,6 +17,9 @@ RUN cd /root/torch && \
     bash install-deps && \
     ./install.sh
 
-RUN luarocks install optnet && \
-    luarocks install cunn && \
-    luarocks install cudnn , cutorch, image, nn
+RUN /root/torch/install/bin/luarocks install nn      && \
+    /root/torch/install/bin/luarocks install optnet  && \
+    /root/torch/install/bin/luarocks install cunn    && \
+    /root/torch/install/bin/luarocks install cudnn   && \
+    /root/torch/install/bin/luarocks install cutorch && \
+    /root/torch/install/bin/luarocks install image   
