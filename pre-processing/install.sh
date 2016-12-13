@@ -47,7 +47,8 @@ cd $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn && \
     make -j8 && make pycaffe
 
 ### move edited py-caffe files
-cp $WORKSPACE/installation/proposal_layer.py $WORKSPACE/py-faster-rcnn/lib/rpn/proposal_layer.hpp
+rm $WORKSPACE/py-faster-rcnn/lib/rpn/proposal_layer.py
+cp $WORKSPACE/installation/proposal_layer.py $WORKSPACE/py-faster-rcnn/lib/rpn/proposal_layer.py
 
 # get trained model
 cd $WORKSPACE

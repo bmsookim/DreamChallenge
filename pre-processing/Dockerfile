@@ -96,7 +96,7 @@ RUN pip install easydict cython
 RUN ./install.sh
 
 # move preprocessing scripts
-RUN apt-get install libyaml-cpp-dev -y
+RUN apt-get install libyaml-cpp-dev python-tk  -y
 WORKDIR /
 COPY requirements.txt  ./
 RUN pip install -r requirements.txt
