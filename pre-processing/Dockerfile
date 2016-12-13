@@ -75,7 +75,7 @@ RUN apt-get install python-opencv -y
 # install py-faster-rcnn
 WORKDIR /
 RUN mkdir installation
-COPY ./installation/pycaffe.Makefile.config ./installation/pycaffe.Makefile.config
+COPY ./installation ./installation
 COPY install.sh ./
 
     # install dependencies
