@@ -6,9 +6,13 @@ Torch implementation.
 See the [installation instruction](installation.md) for a step-by-step guide.
 - Install [Torch](http://torch.ch/docs/getting-started.html)
 - Install [cuda-8.0](https://developer.nvidia.com/cuda-downloads)
-- Install [cudnn v5](https://developer.nvidia.com/cudnn)
+- Install [cudnn v5.1](https://developer.nvidia.com/cudnn)
 - Install 'optnet'
 ```bash
+luarocks install torch
+luarocks install cutorch
+luarocks install cunn
+luarocks install image
 luarocks install optnet
 ```
 
@@ -19,10 +23,10 @@ luarocks install optnet
 | GTX 1080   | 2       | 372.20         | server |
 
 ## Directories and datasets
-- modelState : The optimal stages and models will be saved in this directory.
+- /scratch : All the optimal stages and models will be saved in this directory.
+- /modelState : The best optimal stages and models will be saved in this directory.
 - datasets : data generation & preprocessing codes are contained.
 - networks : directory that contains resnet structure file.
-- scripts : directory where scripts for each datasets are contained.
 - preprocessedData : we assume that this directory contains the data in the format below.
 ```bash
 preprocessedData
@@ -40,10 +44,3 @@ You can run each dataset which could be either cifar10, cifar100, imagenet, catd
 ```bash
 ./train.sh
 ```
-## Cat vs Dog Results
-Below is the result of the validation set accuracy for Kaggle Cat vs Dog dataset training
-
-| network           | initial LR | Optimizer| Memory  | epoch | per epoch    | Top1 acc(%)|
-|:-----------------:|:----------:|----------|:-------:|:-----:|:------------:|:----------:|
-| wide-resnet 28x10 |    1e-1    | Momentum | 6.57G   | 200   | 6 min 06 sec |   97.800   |
-

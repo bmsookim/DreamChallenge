@@ -96,7 +96,6 @@ end
 
 function Trainer:test(epoch, dataloader)
    -- Computes the top-1 and top-5 err on the validation set
-
    local timer = torch.Timer()
    local dataTimer = torch.Timer()
    local size = dataloader:size()
@@ -121,9 +120,6 @@ function Trainer:test(epoch, dataloader)
       top5Sum = top5Sum + top5*batchSize
       N = N + batchSize
       elpased_time = elapsed_time + timer:time().real + dataTime
-
-      -- print((' | Test: [%d][%d/%d]    Time %.3f  Data %.3f  top1 %7.3f (%7.3f)  top5 %7.3f (%7.3f)'):format(
-         -- epoch, n, size, timer:time().real, dataTime, top1, top1Sum / N, top5, top5Sum / N))
 
       timer:reset()
       dataTimer:reset()
@@ -188,7 +184,7 @@ function Trainer:learningRate(epoch)
    -- Training schedule
    local decay = 0
    if self.opt.dataset == 'dreamChallenge' then
-      decay = math.floor((epoch - 1) / 30)
+      decay = math.floor((epoch - 1) / 15)
    end
    return self.opt.LR * math.pow(0.2, decay)
 end
