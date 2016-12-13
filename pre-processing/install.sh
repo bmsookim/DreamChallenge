@@ -13,21 +13,30 @@ apt-get install -y \
     libgflags-dev \
     libgoogle-glog-dev \
     liblmdb-dev \
+    libatlas-base-dev \
     python-skimage
 pip install easydict cython
 WORKSPACE=$PWD
 
 # clone faster-rcnn
 # clone caffe
-git clone https://github.com/rbgirshick/py-faster-rcnn.git
+git clone https://github.com/rbgirshick/py-faster-rcnn.git --recursive
 
-cd $WORKSPACE/py-faster-rcnn
-git clone https://github.com/BVLC/caffe.git ./caffe-fast-rcnn
-cp $WORKSPACE/installation/pycaffe.Makefile.config $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn/Makefile.config
+cd $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn
+git remote add caffe https://github.com/BVLC/caffe.git  
+git fetch caffe  
+git merge caffe/master  
+#git clone https://github.com/BVLC/caffe.git ./caffe-fast-rcnn
+
 
 # install dependencies
 cd $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn/python
 pip install -r requirements.txt
+
+####
+cp $WORKSPACE/installation/pycaffe.Makefile.config $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn/Makefile.config
+rm $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn/include/caffe/layers/python_layer.hpp
+#cp $WORKSPACE/installation/python_layer.hpp $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn/include/caffe/layers/python_layer.hpp
 
 # install libs
 cd $WORKSPACE/py-faster-rcnn/lib && \
