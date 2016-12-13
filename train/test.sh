@@ -1,9 +1,8 @@
 export netType='wide-resnet'
-export depth=52
-export width=4
+export depth=50
+export width=2
 export dataset='dreamChallenge'
-export data='preprocessedData'
-export CUDA_VISIBLE_DEVICES="0,1"
+export data='/preprocessedData'
 
 th test.lua \
 -dataset ${dataset} \
@@ -12,8 +11,8 @@ th test.lua \
 -nGPU 2 \
 -batchSize 32 \
 -dropout 0 \
--imageSize 1024 \
--cropSize 1024 \
+-imageSize 224 \
+-cropSize 224 \
 -top5_display false \
 -depth ${depth} \
 -widen_factor ${width}
