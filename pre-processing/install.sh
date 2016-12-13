@@ -25,7 +25,7 @@ git clone https://github.com/rbgirshick/py-faster-rcnn.git --recursive
 cd $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn
 git remote add caffe https://github.com/BVLC/caffe.git  
 git fetch caffe  
-git merge caffe/master  
+git merge caffe/master -m " "
 #git clone https://github.com/BVLC/caffe.git ./caffe-fast-rcnn
 
 
@@ -33,10 +33,10 @@ git merge caffe/master
 cd $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn/python
 pip install -r requirements.txt
 
-####
+#### move edited caffe files
 cp $WORKSPACE/installation/pycaffe.Makefile.config $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn/Makefile.config
 rm $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn/include/caffe/layers/python_layer.hpp
-#cp $WORKSPACE/installation/python_layer.hpp $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn/include/caffe/layers/python_layer.hpp
+cp $WORKSPACE/installation/python_layer.hpp $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn/include/caffe/layers/python_layer.hpp
 
 # install libs
 cd $WORKSPACE/py-faster-rcnn/lib && \
@@ -44,6 +44,9 @@ cd $WORKSPACE/py-faster-rcnn/lib && \
 # install caffe
 cd $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn && \
     make -j8 && make pycaffe
+
+### move edited py-caffe files
+cp $WORKSPACE/installation/proposal_layer.py $WORKSPACE/py-faster-rcnn/lib/rpn/proposal_layer.hpp
 
 # get trained model
 cd $WORKSPACE
