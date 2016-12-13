@@ -1,5 +1,20 @@
 #!/bin/bash
 
+apt-get install libprotobuf-dev libleveldb-dev libsnappy-dev libopencv-dev libhdf5-serial-dev protobuf-compiler -y
+apt-get install --no-install-recommends libboost-all-dev -y
+apt-get install libgflags-dev libgoogle-glog-dev liblmdb-dev -y
+apt-get install -y \
+    libprotobuf-dev \
+    libleveldb-dev \
+    libsnappy-dev \
+    libopencv-dev \
+    libhdf5-serial-dev \
+    protobuf-compiler \
+    libgflags-dev \
+    libgoogle-glog-dev \
+    liblmdb-dev \
+    python-skimage
+
 WORKSPACE=$PWD
 
 # clone faster-rcnn
