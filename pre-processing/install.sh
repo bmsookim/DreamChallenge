@@ -25,8 +25,9 @@ git clone https://github.com/rbgirshick/py-faster-rcnn.git --recursive
 cd $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn
 git remote add caffe https://github.com/BVLC/caffe.git  
 git fetch caffe  
+git config user.name "dmis"
+git config user.email "dmis.dreamchallenge@gmail.com"
 git merge caffe/master -m " "
-#git clone https://github.com/BVLC/caffe.git ./caffe-fast-rcnn
 
 
 # install dependencies
