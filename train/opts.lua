@@ -27,7 +27,7 @@ function M.parse(arg)
    cmd:option('-cudnn',      'fastest',  'Options: fastest | default | deterministic')
    cmd:option('-gen',        'gen',      'Path to save generated files')
    ------------- Data options ------------------------
-   cmd:option('-nThreads',        18, 'number of data loading threads')
+   cmd:option('-nThreads',        16, 'number of data loading threads')
    ------------- Training options --------------------
    cmd:option('-nEpochs',         0,       'Number of total epochs to run')
    cmd:option('-epochNumber',     1,       'Manual epoch number (useful on restarts)')
@@ -35,18 +35,19 @@ function M.parse(arg)
    cmd:option('-cropSize',        224,     'Width & Height of cropped image')
    cmd:option('-featureMap',      0,       'final attention map size')
    cmd:option('-batchSize',       32,      'mini-batch size (1 = pure stochastic)')
-   cmd:option('-display_iter',    15,     'display of training iteration')
+   cmd:option('-display_iter',    15,      'display of training iteration')
    cmd:option('-top5_display',    'false', 'display top5 accuracy')
    cmd:option('-testOnly',        'false', 'Run on validation set only')
    cmd:option('-tenCrop',         'false', 'Ten-crop testing')
    ------------- Checkpointing options ---------------
-   cmd:option('-save',            'scratch', 'Directory in which to save checkpoints')
-   cmd:option('-resume',          'scratch', 'Resume from the latest checkpoint in this directory')
-   cmd:option('-saveLatest',      'false',   'Resume from the latest checkpoint')
+   cmd:option('-save',            '/scratch',    'Directory in which to save checkpoints')
+   cmd:option('-resume',          '/scratch',    'Resume from the latest checkpoint in this directory')
+   cmd:option('-modelState',      '/modelState', 'Directory for saving model state')
+   cmd:option('-saveLatest',      'false',       'Resume from the latest checkpoint')
    ---------- Optimization options ----------------------
-   cmd:option('-LR',              0.01,     'initial learning rate')
+   cmd:option('-LR',              0.1,     'initial learning rate')
    cmd:option('-momentum',        0.9,     'momentum')
-   cmd:option('-weightDecay',     0.0005,  'weight decay')
+   cmd:option('-weightDecay',     5e-4,    'weight decay')
    ---------- Model options ----------------------------------
    cmd:option('-netType',      'resnet', 'Options: resnet | wide-resnet')
    cmd:option('-depth',        40,       'ResNet depth: 6n+4', 'number')
@@ -86,12 +87,12 @@ function M.parse(arg)
       local trainDir = paths.concat(opt.data, 'train')
       if not paths.dirp(opt.data) then
          cmd:error('error: missing DreamChallengeNet data directory')
-      --elseif not paths.dirp(trainDir) then
-      --   cmd:error('error: DreamChallengeNet missing `train` directory: ' .. trainDir)
+      elseif not paths.dirp(trainDir) then
+         cmd:error('error: DreamChallengeNet missing `train` directory: ' .. trainDir)
       end
-      -- Default shortcutType=B and nEpochs=90
+      -- Default shortcutType=B and nEpochs=200
       opt.shortcutType = opt.shortcutType == '' and 'B' or opt.shortcutType
-      opt.nEpochs = opt.nEpochs == 0 and 90 or opt.nEpochs
+      opt.nEpochs = opt.nEpochs == 0 and 200 or opt.nEpochs
       opt.imageSize = opt.imageSize == 0 and 1024 or opt.imageSize
    else
       cmd:error('unknown dataset: ' .. opt.dataset)
