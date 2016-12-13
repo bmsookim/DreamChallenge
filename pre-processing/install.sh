@@ -14,7 +14,7 @@ apt-get install -y \
     libgoogle-glog-dev \
     liblmdb-dev \
     python-skimage
-
+pip install easydict cython
 WORKSPACE=$PWD
 
 # clone faster-rcnn
@@ -27,6 +27,7 @@ cp $WORKSPACE/installation/pycaffe.Makefile.config $WORKSPACE/py-faster-rcnn/caf
 
 # install dependencies
 cd $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn/python
+pip install -r requirements.txt
 
 # install libs
 cd $WORKSPACE/py-faster-rcnn/lib && \
@@ -39,3 +40,7 @@ cd $WORKSPACE/py-faster-rcnn/caffe-fast-rcnn && \
 cd $WORKSPACE
 wget http://infos.korea.ac.kr/crawl/model.tar.gz
 tar -zxvf model.tar.gz
+
+cd $WORKSPACE
+chmod 777 py-faster-rcnn
+rm model.tar.gz
