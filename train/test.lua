@@ -9,8 +9,6 @@
 --  Digital Mammography DREAM Challenge Torch Implementation
 --
 
-test_path = 'test/cancer6.png'
-
 require 'torch'
 require 'paths'
 require 'optim'
@@ -67,12 +65,10 @@ local function findImages(dir)
    return imagePaths, nImages
 end
 
-testImagePath, nImages = findImages('test/')
+testImagePath, nImages = findImages('/preprocessedData/test/')
 
 for i=1,nImages do
    test_path = testImagePath[i]
-
-
    test_image = image.load(test_path)
    interpolation = 'bicubic'
    size = opt.cropSize
@@ -93,12 +89,9 @@ for i=1,nImages do
    local h1 = math.ceil((test_image:size(2) -size)/2)
 
    test_image = image.crop(test_image, w1, h1, w1+size, h1+size)
-   -- print(test_image:size())
-
    test_image:resize(1, 3, opt.cropSize, opt.cropSize)
 
    result = model:forward(test_image):float()
-   -- print(result)
 
    exp = torch.exp(result)
    exp_sum = exp:sum()
