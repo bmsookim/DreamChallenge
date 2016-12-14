@@ -66,15 +66,11 @@ end
 function ImagenetDataset:preprocess()
    if self.split == 'train' then
       return t.Compose{
-         t.RandomSizedCrop(self.opt.cropSize),
-         t.ColorNormalize(meanstd),
+          t.Scale(self.opt.imageSize),
       }
    elseif self.split == 'val' then
-      local Crop = self.opt.tenCrop and t.TenCrop or t.CenterCrop
       return t.Compose{
          t.Scale(self.opt.imageSize),
-         t.ColorNormalize(meanstd),
-         Crop(self.opt.cropSize),
       }
    else
       error('invalid split: ' .. self.split)
