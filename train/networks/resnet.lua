@@ -118,15 +118,14 @@ local function createModel(opt)
       print(' | ResNet-' .. depth .. ' ImageNet')
 
       -- The ResNet ImageNet model
-      model:add(Convolution(3,64,7,7,2,2,3,3))
+      model:add(Convolution(3,64,7,7,2,2,3,3))        -- Spatial size : 256 x 256
       model:add(SBatchNorm(64))
       model:add(ReLU(true))
-      model:add(Max(3,3,2,2,1,1))
-      model:add(layer(block, 64*width,  def[1]))
-      model:add(layer(block, 128*width, def[2], 2))
-      model:add(layer(block, 256*width, def[3], 2))
-      model:add(layer(block, 512*width, def[4], 2))
-      model:add(Avg(7, 7, 1, 1))
+      model:add(layer(block, 64*width,  def[1], 2))   -- Spatial size : 128 x 128
+      model:add(layer(block, 128*width, def[2], 2))   -- Spatial size : 64 x 64
+      model:add(layer(block, 256*width, def[3], 2))   -- Spatial size : 32 x 32
+      model:add(layer(block, 512*width, def[4], 2))   -- Spatial size : 16 x 16
+      model:add(Avg(16, 16, 1, 1))
       model:add(nn.View(nFeatures):setNumInputDims(3))
       model:add(nn.Linear(nFeatures, 2))
    else
