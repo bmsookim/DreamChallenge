@@ -184,7 +184,7 @@ function Trainer:learningRate(epoch)
    -- Training schedule
    local decay = 0
    if self.opt.dataset == 'dreamChallenge' then
-      decay = math.floor((epoch - 1) / 15)
+      decay = math.floor((epoch - 1) / 60)
    end
    return self.opt.LR * math.pow(0.2, decay)
 end
