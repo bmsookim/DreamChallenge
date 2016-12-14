@@ -68,32 +68,11 @@ function checkpoint.save(epoch, model, optimState, isBestModel, opt)
       model = model:get(1)
    end
 
-   -- create a clean copy on the CPU without modifying the original network
-   model = deepCopy(model):float():clearState()
-
    local modelFile = 'model_' .. epoch .. '.t7'
    local optimFile = 'optimState_' .. epoch .. '.t7'
 
-   if(opt.saveLatest) then
-      torch.save(paths.concat(opt.save, modelFile), model)
-      torch.save(paths.concat(opt.save, optimFile), optimState)
- 
-      -- save the latest file
-      torch.save(paths.concat(opt.save, 'latest.t7'), {
-         epoch = epoch,
-         modelFile = modelFile,
-         optimFile = optimFile,
-      })
-   end
-
-   if before_was_best == false then
-      bef_model = 'model_' .. (epoch-1)..'.t7'
-      bef_optim = 'optimState_' .. (epoch-1)..'.t7'
-      os.remove(paths.concat(opt.save, bef_model))
-      os.remove(paths.concat(opt.save, bef_optim))
-   end
-
    if isBestModel then
+      model = deepCopy(model):float():clearState()
       torch.save(paths.concat(opt.save, modelFile), model)
       torch.save(paths.concat(opt.save, optimFile), optimState)
       torch.save(paths.concat(opt.save, 'best.t7'), {
