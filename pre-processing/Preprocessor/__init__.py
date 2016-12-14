@@ -2,7 +2,6 @@ import logging
 FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
 logging.basicConfig(format=FORMAT)
 logger = logging.getLogger()
-logger.info('a')
 
 import sys
 import numpy as np
@@ -63,7 +62,7 @@ def resize(img, config=None, size=(1024,1024)):
 
 def trim(im, config):
     ret,thresh = cv2.threshold(im,0,255,0)
-    _,contours,_ = cv2.findContours(thresh,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+    contours,_ = cv2.findContours(thresh,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
     areas = [cv2.contourArea(c) for c in contours]
 
     max_index = np.argmax(areas)

@@ -75,7 +75,7 @@ RUN apt-get install python-opencv -y
 # install py-faster-rcnn
 WORKDIR /
 RUN mkdir installation
-COPY ./installation/pycaffe.Makefile.config ./installation/pycaffe.Makefile.config
+COPY ./installation ./installation
 COPY install.sh ./
 
     # install dependencies
@@ -96,7 +96,7 @@ RUN pip install easydict cython
 RUN ./install.sh
 
 # move preprocessing scripts
-RUN apt-get install libyaml-cpp-dev -y
+RUN apt-get install libyaml-cpp-dev python-tk  -y
 WORKDIR /
 COPY requirements.txt  ./
 RUN pip install -r requirements.txt

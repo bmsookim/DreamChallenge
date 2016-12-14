@@ -25,3 +25,9 @@ RUN /root/torch/install/bin/luarocks install nn      && \
     /root/torch/install/bin/luarocks install cudnn   && \
     /root/torch/install/bin/luarocks install cutorch && \
     /root/torch/install/bin/luarocks install image   
+
+WORKDIR /
+COPY *.lua ./
+COPY train.sh ./
+COPY datasets ./datasets
+COPY networks ./networks

@@ -126,11 +126,14 @@ class App(object):
 
     def preprocessing_single_proc(self, s_dict,
             source_dir, target_dir, tmp_dir, proc_num=0):
+
         # create extractors based on configuration
         if self.config['pipeline']['roi']:
+            gpu_id = proc_num / 6
             ext = { target: extractor.factory(
                                 target,
-                                self.config['modules']['roi'][target])
+                                self.config['modules']['roi'][target],
+                                gpu_id)
                     for target in self.config['modules']['roi']['targets'] }
         else:
             ext = None
