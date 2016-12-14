@@ -25,23 +25,10 @@ function M.Compose(transforms)
    end
 end
 
-function M.ColorNormalize2(meanstd)
-   return function(img)
-      img = img:clone()
-      for i=1,3 do
-        img[i]:add(-meanstd.mean[i])
-        img[i]:div(meanstd.std[i])
-      end
-
-      return img
-   end
-end
-
 function M.ColorNormalize(meanstd)
     return function(img)
         img = img:clone()
         img:add(-img:mean())
-        --img:div(img:std())
         return img
     end
 end
