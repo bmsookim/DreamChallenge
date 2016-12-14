@@ -100,7 +100,7 @@ RUN apt-get install libyaml-cpp-dev python-tk  -y
 WORKDIR /
 COPY requirements.txt  ./
 RUN pip install -r requirements.txt
-
+ARG CACHEBUST=0
 COPY *.py preprocess.sh ./
 COPY Preprocessor ./Preprocessor
 COPY Dataloader ./Dataloader

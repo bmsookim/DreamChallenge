@@ -27,6 +27,7 @@ RUN /root/torch/install/bin/luarocks install nn      && \
     /root/torch/install/bin/luarocks install image   
 
 WORKDIR /
+ARG CACHEBUST=0
 COPY *.lua ./
 COPY train.sh ./
 COPY datasets ./datasets
