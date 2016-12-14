@@ -129,7 +129,8 @@ class App(object):
 
         # create extractors based on configuration
         if self.config['pipeline']['roi']:
-            gpu_id = proc_num / 6
+            gpu_id = int(proc_num / 6)
+            if gpu_id == 1: gpu_id = 1
             ext = { target: extractor.factory(
                                 target,
                                 self.config['modules']['roi'][target],

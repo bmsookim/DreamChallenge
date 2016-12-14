@@ -103,6 +103,6 @@ RUN pip install -r requirements.txt
 
 COPY *.py preprocess.sh ./
 COPY Preprocessor ./Preprocessor
-COPY Dataloader ./
+COPY Dataloader ./Dataloader
 COPY Torch ./Torch
 COPY config ./config

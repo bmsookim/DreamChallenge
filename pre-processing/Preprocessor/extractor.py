@@ -38,8 +38,8 @@ class RoiExtractor(object):
             raise IOError(('{:s} not found').format(self.caffemodel))
 
         caffe.set_mode_gpu()
-        caffe.set_device(0)
-        cfg.GPU_ID = gpu_id
+        caffe.set_device(gpu_id)
+        cfg.CPU_ID = gpu_id
         cfg.TEST.HAS_RPN = True
         self.net = caffe.Net(self.prototxt, self.caffemodel, caffe.TEST)
 
