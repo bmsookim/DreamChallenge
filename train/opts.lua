@@ -40,7 +40,7 @@ function M.parse(arg)
    cmd:option('-testOnly',        'false', 'Run on validation set only')
    cmd:option('-tenCrop',         'false', 'Ten-crop testing')
    ------------- Checkpointing options ---------------
-   cmd:option('-save',            '/modelState',    'Directory in which to save checkpoints')
+   cmd:option('-save',            '/scratch',    'Directory in which to save checkpoints')
    cmd:option('-resume',          '/modelState',    'Resume from the latest checkpoint in this directory')
    cmd:option('-modelState',      '/modelState', 'Directory for saving model state')
    cmd:option('-saveLatest',      'false',       'Resume from the latest checkpoint')
