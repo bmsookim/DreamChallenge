@@ -57,9 +57,25 @@ function checkpoint.best(opt)
 
    print('=> Loading checkpoint ' .. bestPath)
    local best = torch.load(bestPath)
-   local optimState = torch.load(paths.concat(opt.save, best.optimFile))
 
-   return best, optimState
+   return best
+end
+
+function checkpoint.scratch(opt)
+   if opt.resume == 'none' then
+      return nil
+   end
+
+   local latestPath = paths.concat(opt.save, 'best.t7')
+   if not paths.filep(latestPath) then
+      return nil
+   end
+
+   print('=> Converting checkpoint ' .. latestPath)
+   local latest = torch.load(latestPath)
+   os.remove(paths.concat(opt.save, latest.optimFile))
+
+   return latest
 end
 
 function checkpoint.save(epoch, model, optimState, isBestModel, opt)
@@ -72,7 +88,7 @@ function checkpoint.save(epoch, model, optimState, isBestModel, opt)
    local optimFile = 'optimState_' .. epoch .. '.t7'
 
    if isBestModel then
-      model = deepCopy(model):float():clearState()
+      -- model = deepCopy(model):float():clearState()
       torch.save(paths.concat(opt.save, modelFile), model)
       torch.save(paths.concat(opt.save, optimFile), optimState)
       torch.save(paths.concat(opt.save, 'best.t7'), {
