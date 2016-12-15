@@ -35,11 +35,9 @@ class Annotate(object):
 
     def key_press(self, event):
         k = event.key
-        if k == 'm' or k == 'c':
-            f = open(os.path.join(self.text_filepath, self.Image_name+'.txt'), 'a')
-            f.write(k + '\t')
-            f.close()
-
+        f = open(os.path.join(self.text_filepath, self.Image_name+'.txt'), 'a')
+        f.write(k)
+        f.close()
 
     def on_press(self, event):
 
@@ -47,7 +45,7 @@ class Annotate(object):
         self.y0 = event.ydata
         print 'press : ', self.x0, self.y0
         f = open(os.path.join(self.text_filepath, self.Image_name+'.txt'), 'a')
-        f.write(str(int(self.x0)) + ',' + str(int(self.y0)))
+        f.write('\t' + str(int(self.x0)) + ',' + str(int(self.y0)))
         f.close()
 
     def on_release(self, event):
