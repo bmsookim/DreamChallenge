@@ -1,0 +1,2 @@
+preprocessing=docker.synapse.org/syn7794493/preprocessing@sha256:2137b90e3f24ea6b1dec5ac93532de82f5fbbed620b19b9d9a95aa5d1e9c5f30
+training=docker.synapse.org/syn7794493/training-r1@sha256:7b9404cef471533bae5d6a35acfa9c295b08c82172ff35784a5e3a9039b56abb
