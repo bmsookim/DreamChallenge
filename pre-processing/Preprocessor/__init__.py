@@ -39,6 +39,13 @@ def gray2rgb(im):
 """
 adjust image
 """
+def normalize(img, config):
+    gray = cv2.convertScaleAbs(
+            img,
+            alpha=(config['max']/img.max(axis=1).max(axis=0)))
+
+    return gray
+
 def flip(img, config):
     direction = config['direction']
 
@@ -78,7 +85,19 @@ def trim(im, config):
 
     return im[y:y+h, x:x+w]
 
-#TODO:fix bug (in single channel
+def contrast(img, config):
+    mean = np.mean(img[img !=0])
+    if mean > config['threshold']:
+        if mean - config['target_mean'] > 0:
+            img = img - (mean - config['target_mean'])
+        else:
+            img = img + (config['target_mean'] - mean)
+
+        img = img.clip(min = config['clip']['min'])
+        img = img.clip(max = config['clip']['max'])
+    return img
+
+
 def padding(img, config):
     w = len(img)
     h = len(img[0])

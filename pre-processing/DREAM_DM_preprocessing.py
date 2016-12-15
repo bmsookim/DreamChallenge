@@ -187,8 +187,21 @@ class App(object):
         logger.debug('start: {method}'.format(method='handle dcm'))
         imgs = dict()
 
-        # convert dicom to (gray scale) image
-        imgs['gray'] = Preprocessor.dcm2cvimg(dcm, proc_num)
+        # get image pixel from dicom
+        imgs['gray'] = dcm.pixel_array
+
+        # run pipeline bofre normalization
+        for module in self.config['pipeline']['prev_norm']:
+            logger.debug('Run module  : {module}'.format(module=module))
+            imgs['gray'] = getattr(Preprocessor, module)(
+                imgs['gray'],
+                self.config['modules'][module]
+            )
+
+        # image pixel normalization
+        imgs['gray'] = Preprocessor.normalize(
+                imgs['gray'],
+                self.config['modules']['normalize'])
 
         # run pipeline before roi extraction
         for module in self.config['pipeline']['prev_roi']:
