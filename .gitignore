@@ -195,4 +195,4 @@ log
 py-faster-rcnn
 model
 *.yaml
-preprocessing.sh
+preprocess.sh
