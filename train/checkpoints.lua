@@ -123,6 +123,13 @@ function checkpoint.cpu_save(epoch, model, optimState, isBestModel, opt)
    local optimFile = 'optimState_' .. epoch .. '.t7'
 
    if isBestModel then
+      if(epoch ~= 1) then 
+         for i=1, (epoch-1) do
+            bef_model = 'model_' .. (i) .. '.t7'
+            os.remove(paths.concat(opt.resume, bef_model))
+            before_was_best = true
+         end
+      end
       print("is best model!")
       -- model = deepCopy(model):float():clearState()
       torch.save(paths.concat(opt.resume, modelFile), model)
@@ -131,13 +138,6 @@ function checkpoint.cpu_save(epoch, model, optimState, isBestModel, opt)
          modelFile = modelFile,
          optimFile = optimFile,
       })
-      if(epoch ~= 1) then 
-         for i=1, (epoch-1) do
-            bef_model = 'model_' .. (i) .. '.t7'
-            os.remove(paths.concat(opt.resume, bef_model))
-            before_was_best = true
-         end
-      end
    else
       before_was_best = false
    end
