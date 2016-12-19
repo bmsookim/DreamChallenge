@@ -97,6 +97,12 @@ class CalExtractor(RoiExtractor):
     def __init__(self, config, gpu_id=0):
         super(CalExtractor, self).__init__(config, CalExtractor.MODEL_NAME, gpu_id)
 
+class NippleExtractor(RoiExtractor):
+    MODEL_NAME = 'MAMMO_nipple.caffemodel'
+
+    def __init__(self, config, gpu_id=0):
+        super(NippleExtractor, self).__init__(config, NippleExtractor.MODEL_NAME, gpu_id)
+
 """
 Inner Cropping
 """
