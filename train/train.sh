@@ -1,7 +1,7 @@
 #!/bin/bash
 export netType='wide-resnet'
-export depth=10
-export width=1
+export depth=34
+export width=4
 export dataset='dreamChallenge'
 export data='/preprocessedData/dreamCh/'
 
@@ -34,4 +34,4 @@ th convert.lua \
 -depth ${depth} \
 -widen_factor ${width} \
 
-mv /scratch/* /modelState/ 
+cp -R /scratch/* /modelState/ 

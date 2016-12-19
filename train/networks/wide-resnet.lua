@@ -83,7 +83,7 @@ local function createModel(opt)
       local n = (depth-4)/6
       local k = opt.widen_factor
       print(' | Wide-ResNet-' .. depth .. 'x' .. k .. ' Challenge Net')
-      local nStages = torch.Tensor{2, 4, 6*k, 8*k, 10*k}
+      local nStages = torch.Tensor{32, 64, 128*k, 256*k, 512*k}
 
       -- The ResNet ImageNet model
       model:add(Convolution(3,nStages[1],7,7,2,2,3,3))                -- 256 x 256
