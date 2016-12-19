@@ -97,14 +97,18 @@ def contrast(img, config):
         img = img.clip(max = config['clip']['max'])
     return img
 
-
 def padding(img, config):
     w = len(img)
     h = len(img[0])
+    d = None if len(img.shape) == 2 else img.shape[2]
     size = max(w, h)
-    empty= np.zeros((w, h, img.shape[2]), dtype=img.dtype)
 
-    empty[:w][:h] = img
+    if d is None:
+        empty= np.zeros((size, size), dtype=img.dtype)
+    else:
+        empty= np.zeros((size, size, d), dtype=img.dtype)
+
+    empty[:w, :h] = img
 
     return empty
 
