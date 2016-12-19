@@ -37,23 +37,26 @@ def undersampling(src_path, target_path, exams_dict):
             else:
                 is_cancer = False
 
-            target_f.write('\t'.join([
-                s_id, e_id, row['imageIndex'],
-                row['view'], row['laterality'],
-                row['filename']
-                ])
-            )
-            target_f.write('\n')
+            if is_cancer:
+                target_f.write('\t'.join([
+                    s_id, e_id, row['imageIndex'],
+                    row['view'], row['laterality'],
+                    row['filename']
+                    ])
+                )
+                target_f.write('\n')
         else:
             is_cancer = row['cancer'] == '1'
-            target_f.write('\t'.join([
-                s_id, e_id, row['imageIndex'],
-                row['view'], row['laterality'],
-                row['filename'],
-                row['cancer']
-                ])
-            )
-            target_f.write('\n')
+
+            if is_cancer:
+                target_f.write('\t'.join([
+                    s_id, e_id, row['imageIndex'],
+                    row['view'], row['laterality'],
+                    row['filename'],
+                    row['cancer']
+                    ])
+                )
+                target_f.write('\n')
 
     target_f.close()
     src_f.close()

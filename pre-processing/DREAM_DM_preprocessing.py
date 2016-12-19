@@ -103,7 +103,7 @@ class App(object):
         logger.debug('split subject_dict finish')
 
         procs = list()
-        for proc_num in range(self.proc_cnt):
+        for proc_num in range(len(proc_feeds)):
             proc_feed = proc_feeds[proc_num]
 
             proc = multiprocessing.Process(target=
