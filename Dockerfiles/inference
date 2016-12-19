@@ -72,12 +72,6 @@ ENV LUA_CPATH='/root/torch/install/lib/?.so;'$LUA_CPATH
 # install opencv
 RUN apt-get install python-opencv -y
 
-# install py-faster-rcnn
-WORKDIR /
-RUN mkdir installation
-COPY ./installation ./installation
-COPY install.sh ./
-
     # install dependencies
 RUN apt-get install -y \
     libprotobuf-dev \
@@ -97,12 +91,21 @@ RUN ./install.sh
 
 # move preprocessing scripts
 RUN apt-get install libyaml-cpp-dev python-tk  -y
+
+RUN /root/torch/install/bin/luarocks install nn      && \
+    /root/torch/install/bin/luarocks install optnet  && \
+    /root/torch/install/bin/luarocks install cunn    && \
+    /root/torch/install/bin/luarocks install cudnn   && \
+    /root/torch/install/bin/luarocks install cutorch && \
+    /root/torch/install/bin/luarocks install image   
+
 WORKDIR /
-COPY requirements.txt  ./
-RUN pip install -r requirements.txt
 ARG CACHEBUST=0
-COPY *.py preprocess.sh ./
-COPY Preprocessor ./Preprocessor
-COPY Dataloader ./Dataloader
-COPY Torch ./Torch
-COPY config ./config
+COPY train ./train
+COPY pre-processing ./pre-processing
+
+WORKDIR /pre-processing
+RUN pip install -r requirements.txt
+RUN ./install.sh
+
+
