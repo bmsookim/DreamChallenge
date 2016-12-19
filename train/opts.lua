@@ -73,7 +73,7 @@ function M.parse(arg)
    opt.optnet = opt.optnet ~= 'false'
    opt.resetClassifier = opt.resetClassifier ~= 'false'
    opt.top5_display = opt.top5_display ~= 'false'
-   opt.saveTen = opt.saveTen ~= 'false'
+   opt.saveCut = opt.saveCut ~= 'false'
    opt.save = opt.save .. '/' .. opt.netType .. '-' ..opt.depth .. 'x' .. opt.widen_factor .. '/'
    opt.featureMap = math.floor(opt.cropSize/32)
    if opt.resume ~= '' then 
