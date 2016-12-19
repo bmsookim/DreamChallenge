@@ -20,18 +20,18 @@ th main.lua \
 -depth ${depth} \
 -widen_factor ${width} \
 
-#th convert.lua \
-#-dataset ${dataset} \
-#-data ${data} \
-#-netType ${netType} \
-#-nGPU 2 \
-#-batchSize 32 \
-#-dropout 0 \
-#-imageSize 512 \
-#-cropSize 512 \
-#-top5_display false \
-#-testOnly false \
-#-depth ${depth} \
-#-widen_factor ${width} \
+th convert.lua \
+-dataset ${dataset} \
+-data ${data} \
+-netType ${netType} \
+-nGPU 2 \
+-batchSize 32 \
+-dropout 0 \
+-imageSize 512 \
+-cropSize 512 \
+-top5_display false \
+-testOnly false \
+-depth ${depth} \
+-widen_factor ${width} \
 
-#mv /scratch/* /modelState/ 
+mv /scratch/* /modelState/ 
