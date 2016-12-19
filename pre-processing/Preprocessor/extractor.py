@@ -1,3 +1,5 @@
+import os
+os.environ["GLOG_minloglevel"] = "3"
 import _init_paths
 from fast_rcnn.config import cfg
 from fast_rcnn.test import im_detect
@@ -6,7 +8,7 @@ from utils.timer import Timer
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
-import caffe, os, sys, cv2
+import caffe, sys, cv2
 import argparse
 import xml.dom.minidom as minidom
 import xml.etree.ElementTree as ET
