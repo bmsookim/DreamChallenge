@@ -71,7 +71,7 @@ for epoch = startEpoch, opt.nEpochs do
 
    checkpoints.save(epoch, model, trainer.optimState, bestModel, opt)
 
-   if(epoch > 60) then 
+   if(epoch > 0) then 
       if(opt.saveCut) then
          print(bestModel)
          checkpoints.cpu_save(epoch, model, trainer.optimState, bestModel, opt)
