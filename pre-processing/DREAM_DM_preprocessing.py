@@ -246,7 +246,7 @@ class App(object):
             img_dir = '/'.join([target_dir, cancer_label])
             img_path= '/'.join([img_dir,
                                 '_'.join([
-                                    meta['s_id'],
+                                    meta['s_id'].strip(),
                                     meta['exam_idx'],
                                     meta['v'],
                                     meta['l']
@@ -254,7 +254,7 @@ class App(object):
                                 ])
         elif self.args.form == 'robust':
             img_dir = '/'.join([target_dir,
-                                meta['s_id'],
+                                meta['s_id'].strip(),
                                 meta['exam_idx'],
                                 meta['l']])
             img_path= '/'.join([img_dir, meta['v'] + '.png'])
