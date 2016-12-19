@@ -44,10 +44,11 @@ sampling: default
 #   resize
 #   registration (not yet)
 pipeline: 
-    prev_roi: [trim, flip]
+    prev_norm   : [contrast]
+    prev_roi    : [trim, flip]
     roi: True
-    post_roi: [crop, padding, resize]
-channel: [gray, mass, gray]
+    post_roi    : [crop, padding, resize]
+channel: [gray, mass, calcification]
 
 modules:
     # TRIM
@@ -64,6 +65,8 @@ modules:
             threshold: 0.7
         calcification:
             threshold: 0.5
+        nipple:
+            threshold: 0.7
     # CROP
     crop:
         # method: centered | roi-boundary

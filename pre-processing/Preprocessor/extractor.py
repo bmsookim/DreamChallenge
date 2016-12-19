@@ -23,6 +23,8 @@ def factory(method, config, gpu_id=0):
         return MassExtractor(config, gpu_id)
     elif method == 'calcification':
         return CalExtractor(config, gpu_id)
+    elif method == 'nipple':
+        return NippleExtractor(config, gpu_id)
     else:
         raise AttributeError('Invalid Method: {0}'.format(method))
         sys.exit(-1)
