@@ -110,4 +110,37 @@ function checkpoint.save(epoch, model, optimState, isBestModel, opt)
    end
 end
 
+function checkpoint.cpu_save(epoch, model, optimState, isBestModel, opt)
+   -- don't save the DataParallelTable for easier loading on other machines
+   if torch.type(model) == 'nn.DataParallelTable' then
+      model = model:get(1)
+   end
+
+   -- create a clean copy on the CPU without modifying the original network
+   model = deepCopy(model):float():clearState()
+
+   local modelFile = 'model_' .. epoch .. '.t7'
+   local optimFile = 'optimState_' .. epoch .. '.t7'
+
+   if isBestModel then
+      print("is best model!")
+      -- model = deepCopy(model):float():clearState()
+      torch.save(paths.concat(opt.resume, modelFile), model)
+      torch.save(paths.concat(opt.resume, 'best.t7'), {
+         epoch = epoch,
+         modelFile = modelFile,
+         optimFile = optimFile,
+      })
+      if(epoch ~= 1) then 
+         for i=1, (epoch-1) do
+            bef_model = 'model_' .. (i) .. '.t7'
+            os.remove(paths.concat(opt.resume, bef_model))
+            before_was_best = true
+         end
+      end
+   else
+      before_was_best = false
+   end
+end
+
 return checkpoint

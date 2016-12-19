@@ -63,22 +63,20 @@ for epoch = startEpoch, opt.nEpochs do
    if testTop1 > bestTop1 then
       bestModel = true
       bestTop1 = testTop1
-      bestTop5 = testTop5
-      if opt.top5_display then
-          print(sys.COLORS.red .. ' * Best model (Top1): ',
-                sys.COLORS.magenta .. string.format('%5.2f',testTop1)..
-                sys.COLORS.magenta .. '%' ..
-                sys.COLORS.red .. ' (Top5): ',
-                sys.COLORS.magenta .. string.format('%5.2f', testTop5)..
-                sys.COLORS.magenta .. '%\n' .. sys.COLORS.none)
-      else
-          print(sys.COLORS.red .. ' * Best model (Top1): ',
-                sys.COLORS.magenta .. string.format('%5.2f', testTop1)..
-                sys.COLORS.magenta .. '%\n' .. sys.COLORS.none)
-      end
+      print('==================================================================')
+      print(' * Best model (Top1): ', string.format('%5.2f', testTop1)..'%\n')
+      print('=> Saving the best model in '..opt.save)
+      print('==================================================================\n')
    end
 
    checkpoints.save(epoch, model, trainer.optimState, bestModel, opt)
+
+   if(epoch > 60) then 
+      if(opt.saveCut) then
+         print(bestModel)
+         checkpoints.cpu_save(epoch, model, trainer.optimState, bestModel, opt)
+      end
+   end
 end
 
 if opt.top5_display then

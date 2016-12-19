@@ -44,6 +44,7 @@ function M.parse(arg)
    cmd:option('-resume',          '/modelState',    'Resume from the latest checkpoint in this directory')
    cmd:option('-modelState',      '/modelState', 'Directory for saving model state')
    cmd:option('-saveLatest',      'false',       'Resume from the latest checkpoint')
+   cmd:option('-saveCut',         'true',        'Save by CPU every 10 epochs')
    ---------- Optimization options ----------------------
    cmd:option('-LR',              0.1,     'initial learning rate')
    cmd:option('-momentum',        0.9,     'momentum')
@@ -72,14 +73,19 @@ function M.parse(arg)
    opt.optnet = opt.optnet ~= 'false'
    opt.resetClassifier = opt.resetClassifier ~= 'false'
    opt.top5_display = opt.top5_display ~= 'false'
+   opt.saveTen = opt.saveTen ~= 'false'
    opt.save = opt.save .. '/' .. opt.netType .. '-' ..opt.depth .. 'x' .. opt.widen_factor .. '/'
-   opt.featureMap = math.floor(opt.cropSize/64)
+   opt.featureMap = math.floor(opt.cropSize/32)
    if opt.resume ~= '' then 
        opt.resume = opt.resume .. '/' .. opt.netType .. '-' .. opt.depth .. 'x' .. opt.widen_factor .. '/'
    end
 
    if not paths.dirp(opt.save) and not paths.mkdir(opt.save) then
       cmd:error('error: unable to create checkpoint directory: ' .. opt.save .. '\n')
+   end
+
+   if not paths.dirp(opt.resume) and not paths.mkdir(opt.resume) then
+      cmd:error('error: unable to create modelState directory: ' .. opt.save .. '\n')
    end
 
    if opt.dataset == 'dreamChallenge' then
