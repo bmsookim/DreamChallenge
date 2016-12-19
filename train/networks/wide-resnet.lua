@@ -14,7 +14,7 @@ require 'cunn'
 
 local Convolution = cudnn.SpatialConvolution
 local Avg = cudnn.SpatialAveragePooling
-local ReLU = nn.PReLU --cudnn.ReLU
+local ReLU = cudnn.ReLU
 local Max = nn.SpatialMaxPooling
 local AdaMax = nn.SpatialAdaptiveMaxPooling
 local SBatchNorm = nn.SpatialBatchNormalization
@@ -42,10 +42,10 @@ local function createModel(opt)
       for i,v in ipairs(conv_params) do
          if i == 1 then
             local module = nInputPlane == nOutputPlane and convs or block
-            module:add(SBatchNorm(nInputPlane)):add(ReLU(nInputPlane))
+            module:add(SBatchNorm(nInputPlane)):add(ReLU(true))
             convs:add(Convolution(nInputPlane,nBottleneckPlane,table.unpack(v)))
          else
-            convs:add(SBatchNorm(nBottleneckPlane)):add(ReLU(nBottleneckPlane))
+            convs:add(SBatchNorm(nBottleneckPlane)):add(ReLU(true))
             if opt.dropout > 0 then
                convs:add(Dropout())
             end
@@ -83,18 +83,18 @@ local function createModel(opt)
       local n = (depth-4)/6
       local k = opt.widen_factor
       print(' | Wide-ResNet-' .. depth .. 'x' .. k .. ' Challenge Net')
-      local nStages = torch.Tensor{32, 64, 128*k, 256*k, 512*k}
+      local nStages = torch.Tensor{16, 32, 64*k, 128*k, 256*k}
 
       -- The ResNet ImageNet model
       model:add(Convolution(3,nStages[1],7,7,2,2,3,3))                -- 256 x 256
       model:add(SBatchNorm(nStages[1]))
-      model:add(ReLU(nStages[1]))
+      model:add(ReLU(true))
       model:add(Convolution(nStages[1],nStages[2],7,7,2,2,3,3))       -- 128 x 128
       model:add(wide_layer(wide_basic, nStages[2], nStages[3], n, 2)) -- 64 x 64
       model:add(wide_layer(wide_basic, nStages[3], nStages[4], n, 2)) -- 32 x 32
       model:add(wide_layer(wide_basic, nStages[4], nStages[5], n, 2)) -- 16 x 16
       model:add(SBatchNorm(nStages[5]))
-      model:add(ReLU(nStages[5]))
+      model:add(ReLU(true))
       model:add(Avg(opt.featureMap, opt.featureMap, 1, 1))
       model:add(nn.View(nStages[5]):setNumInputDims(3))
       model:add(nn.Linear(nStages[5], 2))
