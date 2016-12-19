@@ -1,5 +1,5 @@
 #!/bin/bash
-export netType='wide-resnet'
+export netType='convnet'
 export depth=34
 export width=4
 export dataset='dreamChallenge'
