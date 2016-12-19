@@ -50,36 +50,39 @@ pipeline:
     post_roi    : [crop, padding, resize]
 channel: [gray, mass, calcification]
 
+# pipeline modules
 modules:
-    # TRIM
+    contrast:
+        target_mean: 700
+        threshold  : 1000
+        clip:
+            min: 0
+            max: 4000
+    normalize:
+        max: 255.0
     trim: null
-    # FLIP
     flip:
         target: R
         direction: H
-    # ROI
     roi:
         # target: [mass, calcification]
-        targets: [mass]
+        targets: [mass, calcification]
         mass:
             threshold: 0.7
         calcification:
             threshold: 0.5
         nipple:
             threshold: 0.7
-    # CROP
     crop:
         # method: centered | roi-boundary
-        method: roi-boundary
+        method: centered
         min   : 1024
         padding: 10
-    # padding:
     padding: null
-    # resize:
     resize:
         # method: NEAREST | LINEAR | AREA | CUBIC | LANCZOS4
         interpolation: LINEAR
         size:
-            width:  1024
-            height: 1024
+            width:  256
+            height: 256
     colormap: null
