@@ -199,3 +199,4 @@ preprocess.sh
 *.tar.gz
 submission
 pre-processing/script
+Dockerfile

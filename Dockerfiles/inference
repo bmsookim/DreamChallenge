@@ -108,4 +108,6 @@ WORKDIR /pre-processing
 RUN pip install -r requirements.txt
 RUN ./install.sh
 
-
+WORKDIR /
+COPY sc1_infer.sh ./
+COPY sc2_infer.sh ./
