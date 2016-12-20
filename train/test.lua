@@ -65,7 +65,7 @@ local function findImages(dir)
    return imagePaths, nImages
 end
 
-testImagePath, nImages = findImages('/preprocessedData/test/')
+testImagePath, nImages = findImages('/preprocessedData/dreamCh/test/')
 fd = io.open('/preprocessedData/results.txt', 'w')
 
 for i=1,nImages do
