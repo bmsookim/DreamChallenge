@@ -66,6 +66,7 @@ local function findImages(dir)
 end
 
 testImagePath, nImages = findImages('/preprocessedData/test/')
+fd = io.open('/preprocessedData/results.txt', 'w')
 
 for i=1,nImages do
    test_path = testImagePath[i]
@@ -97,10 +98,11 @@ for i=1,nImages do
    exp_sum = exp:sum()
    exp = torch.div(exp, exp_sum)
 
-   maxs, indices = torch.max(exp, 2)
+   fd:write(test_path, '\t', exp[1][2], '/n')
+   -- maxs, indices = torch.max(exp, 2)
 
-   print('The prediction for '..test_path..' is '..
-                              sys.COLORS.red .. labels[indices:sum()] ..
-                              sys.COLORS.none .. ' by ' .. maxs:sum()
-                              .. ' confidence')
+   -- print('The prediction for '..test_path..' is '..
+   --                           sys.COLORS.red .. labels[indices:sum()] ..
+   --                           sys.COLORS.none .. ' by ' .. maxs:sum()
+   --                           .. ' confidence')
 end
