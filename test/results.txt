@@ -1,0 +1,8 @@
+/preprocessedData/test/20/1/L/CC.png	0.0812
+/preprocessedData/test/20/1/L/MLO.png	0.0013
+/preprocessedData/test/20/1/R/CC.png	0.0130
+/preprocessedData/test/20/1/R/MLO.png	0.3390
+/preprocessedData/test/98/1/L/CC.png	0.8329
+/preprocessedData/test/98/1/L/MLO.png	0.9923
+/preprocessedData/test/98/1/R/CC.png	0.0134
+/preprocessedData/test/98/1/R/MLO.png	0.0945
