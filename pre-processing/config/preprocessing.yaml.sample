@@ -3,7 +3,7 @@ data:
     dreamCh:
         pilot: /pilot
         train: /trainingData
-        test : /testData
+        test : /inferenceData
         metadata:
             dir: /metadata
             exams_metadata:   exams_metadata.tsv
@@ -47,7 +47,7 @@ pipeline:
     prev_norm   : [contrast]
     prev_roi    : [trim, flip]
     roi: True
-    post_roi    : [crop, padding, resize]
+    post_roi    : [padding, resize]
 channel: [gray, mass, calcification]
 
 # pipeline modules

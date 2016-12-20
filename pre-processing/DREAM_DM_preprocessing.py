@@ -162,7 +162,10 @@ class App(object):
                     img = self.preprocessing_dcm(dcm, l, ext, proc_num)
 
                     if self.e_dict == None:
-                        cancer_label = info['cancer']
+                        if 'cancer' in info:
+                            cancer_label = info['cancer']
+                        else:
+                            cancer_label = 'None'
                     else:
                         cancer_label = self.e_dict[k]['cancer' + l]
 

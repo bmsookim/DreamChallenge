@@ -20,7 +20,10 @@ def load(corpus, data_dir, tmp_dir, config_metadata, sampler=None):
             config_metadata['dir'],
             config_metadata['exams_metadata']
         ])
-        exams_dict = build_exams_dict(exams_file_path)
+        try:
+            exams_dict = build_exams_dict(exams_file_path)
+        except:
+            exams_dict = None
     else:
         exams_dict = None
 
