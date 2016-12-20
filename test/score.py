@@ -4,7 +4,7 @@ import re
 import csv
 patient_dict = dict()
 
-with open('/preprocessedData/results.txt') as f:
+with open('/preprocessedData/results.txt', 'w') as f:
     for line in f:
         components = re.split(r'\t+', line)
         p = components[0]
