@@ -59,7 +59,8 @@ class App(object):
         # load data
         config_metadata = config['data'][self.args.corpus]['metadata']
         s_dict, self.e_dict = loader.load(
-                                self.args.corpus,
+                                self.args.queue,
+                                self.args.exams_metadata,
                                 self.data_dir,
                                 self.tmp_dir,
                                 config_metadata,
@@ -161,11 +162,11 @@ class App(object):
                     # run image preprocessing and save result
                     img = self.preprocessing_dcm(dcm, l, ext, proc_num)
 
-                    if self.e_dict == None:
+                    if self.args.queue == 'test':
+                        cancer_label = 'None'
+                    elif self.args.corpus != 'dreamCh':
                         if 'cancer' in info:
                             cancer_label = info['cancer']
-                        else:
-                            cancer_label = 'None'
                     else:
                         cancer_label = self.e_dict[k]['cancer' + l]
 
@@ -292,6 +293,7 @@ class App(object):
         print(Fore.CYAN + "# DATASET" + Style.RESET_ALL)
         print("|-- {:10}".format('corpus'),     self.args.corpus)
         print("|-- {:10}".format('dataset'),    self.args.dataset)
+        print("|-- {:10}".format('exams_data'),    self.args.exams_metadata)
 
         print(Fore.CYAN + "# SAMPLING" + Style.RESET_ALL)
         print("|-- {:10}".format('method'),     self.config['sampling'])
@@ -329,12 +331,19 @@ if __name__ == '__main__':
             type=int,
             required=False,
             default = util.get_cpu_cnt(),
-            help='how many use processores')
+            help='how many use processors')
     parser.add_argument('-g', '--gpu',
             type = int,
             required=False,
             default=1,
             help='use GPU? in ROI extraction')
+    parser.add_argument('-q', '--queue',
+            required=True,
+            help='running configuration file')
+    parser.add_argument('-e', '--exams_metadata',
+            type = int,
+            required=True,
+            help='if using exams_metadata')
     #### Dataset
     parser.add_argument('-c', '--corpus',
             required=True,
@@ -358,7 +367,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # load program configuration
-    with open('config/preprocessing.yaml', 'rt') as f:
+    with open('config/' + args.queue + '.yaml', 'rt') as f:
         config = yaml.safe_load(f.read())
 
     preprocessor = App(args=args, config=config)

@@ -5,7 +5,7 @@ import util
 
 logger = util.build_logger()
 
-def load(corpus, data_dir, tmp_dir, config_metadata, sampler=None):
+def load(queue, using_exams, data_dir, tmp_dir, config_metadata, sampler=None):
     logger.info('load dcm file list in {0}'.format(data_dir))
 
     # get file paths
@@ -15,15 +15,12 @@ def load(corpus, data_dir, tmp_dir, config_metadata, sampler=None):
     ])
 
     # build exams_dict if exams_metadata exist, otherwise return None
-    if 'exams_metadata' in config_metadata:
+    if 'exams_metadata' in config_metadata and using_exams == 1:
         exams_file_path  = '/'.join([
             config_metadata['dir'],
             config_metadata['exams_metadata']
         ])
-        try:
-            exams_dict = build_exams_dict(exams_file_path)
-        except:
-            exams_dict = None
+        exams_dict = build_exams_dict(exams_file_path)
     else:
         exams_dict = None
 
