@@ -98,15 +98,21 @@ RUN /root/torch/install/bin/luarocks install nn      && \
     /root/torch/install/bin/luarocks install cudnn   && \
     /root/torch/install/bin/luarocks install cutorch && \
     /root/torch/install/bin/luarocks install image   
+RUN /root/torch/install/bin/luarocks install python  
 
-WORKDIR /
+
 ARG CACHEBUST=0
-COPY train ./train
+WORKDIR /
 COPY pre-processing ./pre-processing
 
 WORKDIR /pre-processing
 RUN pip install -r requirements.txt
 RUN ./install.sh
+
+WORKDIR /
+ARG CACHEBUST=0
+COPY train ./train
+COPY test ./test
 
 WORKDIR /
 COPY sc1_infer.sh ./

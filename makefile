@@ -21,3 +21,4 @@ inference:
 		-t docker.synapse.org/syn7794493/inference-r1 \
 		.
 	rm ./Dockerfile
+	docker push docker.synapse.org/syn7794493/inference-r1

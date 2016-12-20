@@ -37,4 +37,4 @@ th convert.lua \
 -depth ${depth} \
 -widen_factor ${width} 
 
-tar -cvzf /modelState/result.tar.gz /scratch/*
+mv /scratch/* /modelState/

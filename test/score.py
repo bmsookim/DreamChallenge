@@ -4,16 +4,16 @@ import re
 import csv
 patient_dict = dict()
 
-with open('/preprocessedData/results.txt', 'w') as f:
+with open('/preprocessedData/results.txt', 'r') as f:
     for line in f:
         components = re.split(r'\t+', line)
         p = components[0]
         dir_lst = [splits for splits in p.split("/") if splits is not ""]
 
-        patient_id = dir_lst[2]
-        exam_num = dir_lst[3]
-        laterality = dir_lst[4]
-        view = [splits for splits in dir_lst[5].split(".") if splits is not ""][0]
+        patient_id = dir_lst[3]
+        exam_num = dir_lst[4]
+        laterality = dir_lst[5]
+        view = [splits for splits in dir_lst[6].split(".") if splits is not ""][0]
 
         # if(patient_dict[patient_id] == None):
         if patient_id not in patient_dict:
@@ -21,9 +21,6 @@ with open('/preprocessedData/results.txt', 'w') as f:
         if laterality not in patient_dict[patient_id]:
             patient_dict[patient_id][laterality] = []
         patient_dict[patient_id][laterality].append(float(components[1].split("\n")[0]))
-
-
-print patient_dict
 
 with open('/output/predictions.tsv', 'w') as csvfile:
     fieldnames = ['subjectId', 'laterality', 'confidence']
@@ -35,6 +32,3 @@ with open('/output/predictions.tsv', 'w') as csvfile:
             scores = np.array(scores)
             max_score = (scores.max())
             writer.writerow({'subjectId' : p_id, 'laterality' : l, 'confidence' : max_score})
-
-print patient_dict
-
