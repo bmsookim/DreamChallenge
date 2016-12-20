@@ -3,6 +3,8 @@ WORKDIR=$(pwd)
 
 # remove previous preprocessed test data
 rm -rf /preprocssedData/test
+rm -rf /preprocssedData/scratch
+tar -zxvf /modelState/result.tar.gz -C /preprocessedData
 
 # image preprocessing
 cd $WORKDIR/pre-processing

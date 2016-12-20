@@ -5,6 +5,8 @@ export width=4
 export dataset='dreamChallenge'
 export data='/preprocessedData/dreamCh/'
 
+rm -rf scratch/*
+
 th main.lua \
 -dataset ${dataset} \
 -data ${data} \
