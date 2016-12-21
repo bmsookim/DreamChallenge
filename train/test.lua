@@ -14,12 +14,6 @@ require 'paths'
 require 'optim'
 require 'nn'
 require 'image'
-py = require 'python'
-
-py.execute("import sys")
-py.execute("sys.path.insert(0, '../pre-processing')")
-
-local preprocessor = py.import 'pre-processing'
 
 local models = require 'networks/init'
 local opts = require 'opts'
@@ -43,7 +37,6 @@ local checkpoint, optimState = checkpoints.best(opt)
 local model, criterion = models.setup(opt, checkpoint)
 model:evaluate()
 
---[[
 local function findImages(dir)
    local imagePaths = torch.CharTensor()
    local extensionList = {'jpg', 'png', 'jpeg', 'JPG', 'PNG', 'JPEG', 'ppm', 'PPM', 'bmp', 'BMP'}
@@ -81,46 +74,8 @@ local function findImages(dir)
 end
 
 testImagePath, nImages = findImages('/preprocessedData/dreamCh/test/')
-]]--
 
 
-local function findDicoms(dir)
-   local imagePaths = torch.CharTensor()
-   local extensionList = {'cdm'}
-   local findOptions = ' -iname "*.' .. extensionList[1] .. '"'
-   for i = 2, #extensionList do
-      findOptions = findOptions .. ' -o -iname "*.' .. extensionList[i] .. '"'
-   end
-
-   local f = io.popen('find -L ' .. dir ..findOptions)
-
-   local maxLength = -1
-   local imagePaths = {}
-
-   while true do 
-      local line = f:read('*line')
-      if not line then break end
-      local dirname = paths.dirname(line)
-      local filename = paths.basename(line)
-      local path = dirname .. '/' .. filename
--- Hey Minhwan, I edited here
--- so that the filename can include the whole directory. I found that in this case,
--- the path cannot search if there is another folder inside the test directory.
--- Therefore, I modified it to include the whole path and now the code will run
--- sweet. I might be a little late today. I think I'll come back near 12o'clock.
--- Please contact me if anything goes wrong. 
-      table.insert(imagePaths, path)
-      maxLength = math.max(maxLength, #path + 1)
-   end
-
-   f:close()
-
-   local nImages = #imagePaths
-   
-   return imagePaths, nImages
-end
-
-testDicomPath, nDicoms = findDicoms('/inferenceData')
 fd = io.open('/preprocessedData/results.txt', 'w')
 
 for i=1,nImages do

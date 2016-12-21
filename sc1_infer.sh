@@ -5,6 +5,7 @@ WORKDIR=$(pwd)
 ls /
 pwd
 ls /preprocssedData
+ls /output
 #rm -rf /preprocssedData/test
 #rm -rf /preprocssedData/scratch
 #tar -zxvf /modelState/result.tar.gz -C /preprocessedData

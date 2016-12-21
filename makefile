@@ -11,7 +11,7 @@ training:
 	cp ./Dockerfiles/training ./train/Dockerfile
 	cd ./train && \
 	nvidia-docker build \
-		-t docker.synapse.org/syn7794493/train-test \
+		-t docker.synapse.org/syn7794493/train-r1 \
 		.
 	rm ./train/Dockerfile
 	docker push docker.synapse.org/syn7794493/train-r1
