@@ -123,7 +123,11 @@ class App(object):
         for proc in procs:
             proc.join()
 
-        self.merge_metadata(target_dir, self.tmp_dir)
+        merge_filePath = self.merge_metadata(target_dir, self.tmp_dir)
+        if self.config['pipeline']['diff']:
+            f = open(merge_filePath, 'rt')
+            for row in f:
+                (s_id, e_id, v, l, c, f =
 
     def preprocessing_single_proc(self, s_dict,
             source_dir, target_dir, tmp_dir, proc_num=0):
@@ -170,14 +174,14 @@ class App(object):
                     else:
                         cancer_label = self.e_dict[k]['cancer' + l]
 
-                    self.write_img(img, cancer_label, {
+                    img_path = self.write_img(img, cancer_label, {
                         's_id': s_id,
                         'exam_idx': exam_idx,
                         'v': v,
                         'l': l
                         }, target_dir)
 
-                    meta_f.write('\t'.join([s_id, exam_idx, v, l, cancer_label]))
+                    meta_f.write('\t'.join([s_id, exam_idx, v, l, cancer_label, img_path]))
                     meta_f.write('\n')
         meta_f.close()
 
@@ -269,17 +273,17 @@ class App(object):
         util.mkdir(img_dir)
         Preprocessor.write_img(img_path, img)
 
-    def merge_metadata(self, target_dir, tmp_dir):
-        img_cnt = 0
+        return img_path
 
+    def merge_metadata(self, target_dir, tmp_dir):
+        f_path = '/'.join([target_dir, 'metadata.tsv'])
         # merge tmp merge data
-        metadata_f = open('/'.join([target_dir, 'metadata.tsv']), 'w')
+        metadata_f = open(f_path, 'w')
         for metadata_tmp in glob.glob('/'.join([tmp_dir, 'metadata_*.tsv'])):
             metadata_tmp_f = open(metadata_tmp, 'r')
             metadata_f.write(metadata_tmp_f.read())
-            img_cnt += 1
-
-        return img_cnt
+        metadata_f.close()
+        return f_path
 
     def display_setups(self):
         from colorama import init
@@ -359,11 +363,6 @@ if __name__ == '__main__':
             type=int,
             required=False,
             help='generate validset from training')
-    # TODO: remove -b flag
-    parser.add_argument('-b', '--balanced',
-            required=False,
-            help='force balancing train & test')
-
     args = parser.parse_args()
 
     # load program configuration
