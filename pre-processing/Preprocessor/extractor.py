@@ -16,7 +16,7 @@ import xml.etree.ElementTree as ET
 import scipy.sparse
 import scipy.io as sio
 
-os.environ['GLOG_minloglevel'] = '3'
+CUR_PATH = os.path.dirname(os.path.realpath(__file__))
 
 def factory(method, config, gpu_id=0):
     if method == 'mass':
@@ -35,8 +35,10 @@ class RoiExtractor(object):
         self.CLASSES = ('__background__','mass')
         self.NETS    = {'MAMMO': ('MAMMO', 'MAMMO_faster_rcnn_final.caffemodel')}
 
-        self.prototxt = os.path.join('model', 'proto', 'faster_rcnn_test.pt')
-        self.caffemodel = os.path.join('model', model_name)
+        self.prototxt = os.path.join(
+                CUR_PATH, '..', 'model', 'proto', 'faster_rcnn_test.pt')
+        self.caffemodel = os.path.join(
+                CUR_PATH, '..', 'model', model_name)
 
         if not os.path.isfile(self.caffemodel):
             raise IOError(('{:s} not found').format(self.caffemodel))

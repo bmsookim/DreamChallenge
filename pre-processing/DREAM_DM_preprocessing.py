@@ -26,20 +26,18 @@ from   Preprocessor import extractor
 from   Dataloader   import loader
 from   Dataloader   import sampler
 
-
 logger = util.build_logger()
 
 class App(object):
     def __init__(self, **kwargs):
         self.args = kwargs['args']
         self.config = kwargs['config']
-
         # verify argument
-        if args.dataset not in config['data'][args.corpus]:
-            logger.error('Invalid data corpusr: {0}'.format(args.corpus))
+        if self.args.dataset not in self.config['data'][self.args.corpus]:
+            logger.error('Invalid data corpusr: {0}'.format(self.args.corpus))
             sys.exit(-1)
 
-        self.data_dir = self.config['data'][args.corpus][args.dataset]
+        self.data_dir = self.config['data'][self.args.corpus][self.args.dataset]
         self.proc_cnt = self.args.processor
 
         self.display_setups()
@@ -48,7 +46,9 @@ class App(object):
             self.config['resultDir'],
             'tmp'
         ])
-        util.mkdir(self.tmp_dir)
+
+        if self.args.queue != 'test':
+            util.mkdir(self.tmp_dir)
     """
     Preprocessing Main Pipeline (end-point)
     """
@@ -125,10 +125,7 @@ class App(object):
 
         self.merge_metadata(target_dir, self.tmp_dir)
 
-    def preprocessing_single_proc(self, s_dict,
-            source_dir, target_dir, tmp_dir, proc_num=0):
-
-        # create extractors based on configuration
+    def build_extractor(self, proc_num=0):
         if self.config['pipeline']['roi']:
             gpu_id = int(proc_num / 6)
             if gpu_id == 1: gpu_id = 1
@@ -139,6 +136,14 @@ class App(object):
                     for target in self.config['modules']['roi']['targets'] }
         else:
             ext = None
+
+        return ext
+
+    def preprocessing_single_proc(self, s_dict,
+            source_dir, target_dir, tmp_dir, proc_num=0):
+
+        # create extractors based on configuration
+        ext = self.build_extractor()
 
         logger.info('Proc{proc_num} start'.format(proc_num = proc_num))
         start = timer()
@@ -359,10 +364,6 @@ if __name__ == '__main__':
             type=int,
             required=False,
             help='generate validset from training')
-    # TODO: remove -b flag
-    parser.add_argument('-b', '--balanced',
-            required=False,
-            help='force balancing train & test')
 
     args = parser.parse_args()
 

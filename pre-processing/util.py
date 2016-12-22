@@ -12,6 +12,7 @@ import yaml
 import cv2
 import numpy as np
 
+CUR_PATH = os.path.dirname(os.path.realpath(__file__))
 
 """
 File system utils
@@ -39,9 +40,8 @@ def get_cpu_cnt():
 """
 Logger
 """
-def build_logger(default_path='config/logging.yaml',
-        env_key='LOG_CFG'):
-
+def build_logger(default_path=CUR_PATH + '/config/logging.yaml',
+        env_key='LOG_CFG', default_level='INFO'):
     path = default_path
     value = os.getenv(env_key, None)
     if value:
