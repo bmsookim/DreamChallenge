@@ -35,6 +35,27 @@ def gray2rgb(im):
     gray = cv2.cvtColor(im,cv2.COLOR_GRAY2BGR)
     return gray
 
+"""
+diff
+"""
+def diff(left_im, right_im):
+    l_gray = left_im[:,:,0]
+    r_gray = right_im[:,:,0]
+
+    l_diff_r = [subtract(l_gray, r_gray)]
+    r_diff_l = [subtract(r_gray, l_gray)]
+
+    for i in range(1, left_im.shape[2]):
+        l_diff_r.append( left_im[:,:,i])
+        r_diff_l.append(right_im[:,:,i])
+
+    return np.stack(l_diff_r, axis=-1), np.stack(r_diff_l, axis=-1)
+
+def subtract(base, target):
+    diff_im = base - target
+    diff_im[base == target] = 0
+    diff_im[diff_im > 150] = 0
+    return diff_im
 
 """
 adjust image
