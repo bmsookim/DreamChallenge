@@ -123,7 +123,7 @@ class App(object):
         for proc in procs:
             proc.join()
 
-        self.merge_metadata(target_dir, self.tmp_dir)
+        merge_filePath = self.merge_metadata(target_dir, self.tmp_dir)
 
     def build_extractor(self, proc_num=0):
         if self.config['pipeline']['roi']:
@@ -159,6 +159,7 @@ class App(object):
 
             dicom_dict = s_dict[k]
             for v in dicom_dict.keys():
+                laterality_dict = {}
                 for l in dicom_dict[v].keys():
                     info = dicom_dict[v][l]
                     filename = info['fname']
@@ -175,15 +176,21 @@ class App(object):
                     else:
                         cancer_label = self.e_dict[k]['cancer' + l]
 
-                    self.write_img(img, cancer_label, {
+                    img_path = self.write_img(img, cancer_label, {
                         's_id': s_id,
                         'exam_idx': exam_idx,
                         'v': v,
                         'l': l
                         }, target_dir)
 
-                    meta_f.write('\t'.join([s_id, exam_idx, v, l, cancer_label]))
+                    meta_f.write('\t'.join([s_id, exam_idx, v, l, cancer_label, img_path]))
                     meta_f.write('\n')
+
+                    laterality_dict[l] = img
+
+                if config['pipeline']['diff']:
+                    self.preprocessing_diff(laterality_dict)
+
         meta_f.close()
 
         logger.info('Proc{proc_num} Finish : size[{p_size}]\telapsed[{elapsed_time}]'.format(
@@ -191,6 +198,20 @@ class App(object):
             p_size = len(s_dict),
             elapsed_time = timer() - start
             ))
+
+    def preprocessing_diff(self, img_dict):
+        if 'L' not in img_dict or 'R' not in img_dict:
+            return
+
+        left_im  = img_dict['L']
+        right_im = img_dict['R']
+
+        l_diff_r, r_diff_l  = Preprocessor.diff(left_im, right_im)
+
+        Preprocessor.write_img('./l_diff_r.png', l_diff_r)
+        Preprocessor.write_img('./r_diff_l.png', r_diff_l)
+        sys.exit(-1)
+
 
     def preprocessing_dcm(self, dcm, l, ext, proc_num=0):
         logger.debug('start: {method}'.format(method='handle dcm'))
@@ -274,17 +295,17 @@ class App(object):
         util.mkdir(img_dir)
         Preprocessor.write_img(img_path, img)
 
-    def merge_metadata(self, target_dir, tmp_dir):
-        img_cnt = 0
+        return img_path
 
+    def merge_metadata(self, target_dir, tmp_dir):
+        f_path = '/'.join([target_dir, 'metadata.tsv'])
         # merge tmp merge data
-        metadata_f = open('/'.join([target_dir, 'metadata.tsv']), 'w')
+        metadata_f = open(f_path, 'w')
         for metadata_tmp in glob.glob('/'.join([tmp_dir, 'metadata_*.tsv'])):
             metadata_tmp_f = open(metadata_tmp, 'r')
             metadata_f.write(metadata_tmp_f.read())
-            img_cnt += 1
-
-        return img_cnt
+        metadata_f.close()
+        return f_path
 
     def display_setups(self):
         from colorama import init
