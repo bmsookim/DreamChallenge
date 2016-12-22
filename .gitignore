@@ -6,6 +6,7 @@ testData
 Torch/preprocessedData/
 Torch/modelState/
 Torch/scratch/
+diff/data/*
 
 # Created by https://www.gitignore.io/api/python,sublimetext,pycharm
 
