@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 # default packages
+import os
 import glob
 import sys
 import multiprocessing
@@ -176,20 +177,29 @@ class App(object):
                     else:
                         cancer_label = self.e_dict[k]['cancer' + l]
 
-                    img_path = self.write_img(img, cancer_label, {
+                    path_meta = {
                         's_id': s_id,
                         'exam_idx': exam_idx,
                         'v': v,
                         'l': l
-                        }, target_dir)
+                    }
+
+                    img_path = self.gen_savePath(cancer_label, path_meta, target_dir)
 
                     meta_f.write('\t'.join([s_id, exam_idx, v, l, cancer_label, img_path]))
                     meta_f.write('\n')
 
-                    laterality_dict[l] = img
+                    laterality_dict[l] = {
+                        'img': img,
+                        'cancer_label': cancer_label,
+                        'save_path': img_path
+                    }
+
+                    if not config['pipeline']['diff']:
+                        self.write_img(img_path, img)
 
                 if config['pipeline']['diff']:
-                    self.preprocessing_diff(laterality_dict)
+                    self.preprocessing_diff(laterality_dict, target_dir)
 
         meta_f.close()
 
@@ -199,19 +209,17 @@ class App(object):
             elapsed_time = timer() - start
             ))
 
-    def preprocessing_diff(self, img_dict):
+    def preprocessing_diff(self, img_dict, target_dir):
         if 'L' not in img_dict or 'R' not in img_dict:
             return
 
-        left_im  = img_dict['L']
-        right_im = img_dict['R']
+        left_im  = img_dict['L']['img']
+        right_im = img_dict['R']['img']
 
         l_diff_r, r_diff_l  = Preprocessor.diff(left_im, right_im)
 
-        Preprocessor.write_img('./l_diff_r.png', l_diff_r)
-        Preprocessor.write_img('./r_diff_l.png', r_diff_l)
-        sys.exit(-1)
-
+        self.write_img(img_dict['L']['save_path'], l_diff_r)
+        self.write_img(img_dict['R']['save_path'], r_diff_l)
 
     def preprocessing_dcm(self, dcm, l, ext, proc_num=0):
         logger.debug('start: {method}'.format(method='handle dcm'))
@@ -271,7 +279,7 @@ class App(object):
 
         return im
 
-    def write_img(self, img, cancer_label, meta, target_dir):
+    def gen_savePath(self, cancer_label, meta, target_dir):
         if self.args.form == 'class':
             img_dir = '/'.join([target_dir, cancer_label])
             img_path= '/'.join([img_dir,
@@ -292,10 +300,12 @@ class App(object):
             logger.error('invalid form: {form}'.format(form=self.args.form))
             sys.exit(-1)
 
-        util.mkdir(img_dir)
-        Preprocessor.write_img(img_path, img)
-
         return img_path
+
+
+    def write_img(self, img_path, img):
+        util.mkdir(os.path.dirname(img_path))
+        Preprocessor.write_img(img_path, img)
 
     def merge_metadata(self, target_dir, tmp_dir):
         f_path = '/'.join([target_dir, 'metadata.tsv'])
@@ -338,6 +348,10 @@ class App(object):
         for module in self.config['pipeline']['post_roi']:
             print("\t" + Style.BRIGHT + module + Style.RESET_ALL)
             print("\t|\t> ", self.config['modules'][module])
+        if self.config['pipeline']['diff']:
+            print("\tdiff extraction " + Style.BRIGHT + "(ON)" + Style.RESET_ALL)
+        else:
+            print("\t|-- diff extraction (OFF)")
 
         print(Fore.CYAN + "# RESULT" + Style.RESET_ALL)
         print("|-- generating form   ", self.args.form)
