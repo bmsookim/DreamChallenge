@@ -48,6 +48,7 @@ pipeline:
     prev_roi    : [trim, flip]
     roi: True
     post_roi    : [padding, resize]
+    diff: True
 channel: [gray, mass, calcification]
 
 # pipeline modules
