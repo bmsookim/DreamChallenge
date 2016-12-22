@@ -2,16 +2,13 @@
 WORKDIR=$(pwd)
 
 # remove previous preprocessed test data
-rm -rf /preprocssedData/test
+ls /
+pwd
+ls /preprocssedData
+ls /output
 
-# image preprocessing
-cd $WORKDIR/pre-processing
-python DREAM_DM_preprocessing.py --corpus dreamCh --dataset test --form robust --processor 6 --queue test --exams_metada 0
 
 # inference 
 cd $WORKDIR/train
-./test.sh
+python test.py -q test -c dreamCh -d test
 
-# scoring
-cd $WORKDIR/test
-python score.py
