@@ -101,13 +101,15 @@ RUN /root/torch/install/bin/luarocks install nn      && \
 RUN /root/torch/install/bin/luarocks install python  
 
 
-ARG CACHEBUST=0
 WORKDIR /
 COPY pre-processing ./pre-processing
 
 WORKDIR /pre-processing
 RUN pip install -r requirements.txt
 RUN ./install.sh
+RUN pip install lutorpy
+
+ARG CACHEBUST=0
 
 WORKDIR /
 ARG CACHEBUST=0

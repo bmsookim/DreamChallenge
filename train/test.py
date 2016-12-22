@@ -92,7 +92,8 @@ preprocessor = App(args=args, config=config)
 ext = preprocessor.build_extractor()
 
 result = dict()
-for (s_id, exam_idx) in s_dict.keys():
+for i, (s_id, exam_idx) in enumerate(s_dict.keys()):
+    print i, len(s_dict.keys())
     k = (s_id, exam_idx)
 
     dicom_dict = s_dict[k]
