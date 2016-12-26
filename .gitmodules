@@ -1,0 +1,3 @@
+[submodule "dicom-preprocessing"]
+	path = dicom-preprocessing
+	url = https://github.com/MinhwanYu/dicom-preprocessing.git
