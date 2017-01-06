@@ -1,7 +1,7 @@
 #!/bin/bash
 export netType='wide-resnet'
 export depth=34
-export width=4
+export width=2
 export dataset='dreamChallenge'
 export data='/preprocessedData/dreamCh/'
 

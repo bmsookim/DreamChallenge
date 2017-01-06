@@ -60,7 +60,7 @@ function M.parse(arg)
    opt.shareGradInput = opt.shareGradInput ~= 'false'
    opt.optnet = opt.optnet ~= 'false'
    opt.save = opt.save ..'/'..opt.netType..'-'..opt.depth..'x'.. opt.widen_factor..'/'..opt.nExperiment..'/'
-   opt.featureMap = math.floor(opt.cropSize/32) -- currently, 7
+   opt.featureMap = math.floor(opt.imageSize/32) -- currently, 7
    if opt.resume ~= '' then 
        opt.resume = opt.resume..'/'..opt.netType..'-'..opt.depth..'x'..opt.widen_factor..'/'..opt.nExperiment..'/'
    end
