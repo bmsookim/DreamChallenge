@@ -1,6 +1,6 @@
 #!/bin/bash
 export netType='wide-resnet'
-export depth=40
+export depth=34
 export width=2
 export dataset='dreamChallenge'
 export data='/preprocessedData/dreamCh/'
@@ -15,9 +15,8 @@ th main.lua \
 -batchSize 32 \
 -dropout 0.3 \
 -LR 1e-2 \
--imageSize 256 \
--cropSize 256 \
--saveCut false \
+-imageSize 224 \
+-cropSize 224 \
 -top5_display false \
 -testOnly false \
 -depth ${depth} \

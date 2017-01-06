@@ -73,16 +73,9 @@ function Trainer:train(epoch, dataloader)
       lossSum = lossSum + loss*batchSize
       N = N + batchSize
       elapsed_time = elapsed_time + timer:time().real + dataTime
-
-      if(n % _opt.display_iter == 0) then
-          if _opt.top5_display then
-              print((' | [#%3d][%3d/%d]    Time %.3f  Loss %1.4f  Top1 %7.3f%s  Top5 %7.3f%s')
-              :format(epoch, n, trainSize, timer:time().real + dataTime, loss, top1, '%', top5, '%'))
-          else
-              print((' | [#%3d][%3d/%d]    Time %.3f  Loss %1.4f  Top1 %7.3f%s')
+      
+      print((' | [#%3d][%3d/%d]    Time %.3f  Loss %1.4f  Top1 %7.3f%s')
               :format(epoch, n, trainSize, timer:time().real + dataTime, loss, top1, '%'))
-          end
-      end
 
       -- check that the storage didn't get changed do to an unfortunate getParameters call
       assert(self.params:storage() == self.model:parameters()[1]:storage())
