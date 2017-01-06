@@ -78,39 +78,7 @@ function checkpoint.scratch(opt)
    return latest
 end
 
-function checkpoint.save(epoch, model, optimState, isBestModel, opt)
-   -- don't save the DataParallelTable for easier loading on other machines
-   if torch.type(model) == 'nn.DataParallelTable' then
-      model = model:get(1)
-   end
-
-   local modelFile = 'model_' .. epoch .. '.t7'
-   local optimFile = 'optimState_' .. epoch .. '.t7'
-
-   if isBestModel then
-      -- model = deepCopy(model):float():clearState()
-      torch.save(paths.concat(opt.save, modelFile), model)
-      torch.save(paths.concat(opt.save, optimFile), optimState)
-      torch.save(paths.concat(opt.save, 'best.t7'), {
-         epoch = epoch,
-         modelFile = modelFile,
-         optimFile = optimFile,
-      })
-      if(epoch ~= 1) then 
-         for i=1, (epoch-1) do
-            bef_model = 'model_' .. (i) .. '.t7'
-            bef_optim = 'optimState_' .. (i) .. '.t7'
-            os.remove(paths.concat(opt.save, bef_model))
-            os.remove(paths.concat(opt.save, bef_optim))
-            before_was_best = true
-         end
-      end
-   else
-      before_was_best = false
-   end
-end
-
-function checkpoint.cpu_save(epoch, model, optimState, isBestModel, opt)
+function checkpoint.save(epoch, model, isBestModel, opt)
    -- don't save the DataParallelTable for easier loading on other machines
    if torch.type(model) == 'nn.DataParallelTable' then
       model = model:get(1)
@@ -120,7 +88,6 @@ function checkpoint.cpu_save(epoch, model, optimState, isBestModel, opt)
    model = deepCopy(model):float():clearState()
 
    local modelFile = 'model_' .. epoch .. '.t7'
-   local optimFile = 'optimState_' .. epoch .. '.t7'
 
    if isBestModel then
       if(epoch ~= 1) then 
