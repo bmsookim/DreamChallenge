@@ -44,10 +44,9 @@ function DataLoader:__init(dataset, opt, split)
    end
 
    local threads, sizes = Threads(opt.nThreads, init, main)
-   self.nCrops = (split == 'val' and opt.tenCrop) and 10 or 1
    self.threads = threads
    self.__size = sizes[1][1]
-   self.batchSize = math.floor(opt.batchSize / self.nCrops)
+   self.batchSize = math.floor(opt.batchSize)
 end
 
 function DataLoader:size()
@@ -73,15 +72,14 @@ function DataLoader:run()
                   local input = _G.preprocess(sample.input)
                   if not batch then
                      imageSize = input:size():totable()
-                     if nCrops > 1 then table.remove(imageSize, 1) end
-                     batch = torch.FloatTensor(sz, nCrops, table.unpack(imageSize))
+                     batch = torch.FloatTensor(sz, 1, table.unpack(imageSize))
                   end
                   batch[i]:copy(input)
                   target[i] = sample.target
                end
                collectgarbage()
                return {
-                  input = batch:view(sz * nCrops, table.unpack(imageSize)),
+                  input = batch:view(sz, table.unpack(imageSize)),
                   target = target,
                }
             end,
@@ -89,7 +87,7 @@ function DataLoader:run()
                sample = _sample_
             end,
             indices,
-            self.nCrops
+            1
          )
          idx = idx + batchSize
       end
