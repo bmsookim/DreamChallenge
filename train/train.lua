@@ -67,22 +67,14 @@ function Trainer:train(epoch, dataloader)
 
       optim.sgd(feval, self.params, self.optimState)
 
-      local top1, top5 = self:computeScore(output, sample.target, 1)
+      local top1 = self:computeScore(output, sample.target)
       top1Sum = top1Sum + top1*batchSize
-      top5Sum = top5Sum + top5*batchSize
       lossSum = lossSum + loss*batchSize
       N = N + batchSize
       elapsed_time = elapsed_time + timer:time().real + dataTime
-
-      if(n % _opt.display_iter == 0) then
-          if _opt.top5_display then
-              print((' | [#%3d][%3d/%d]    Time %.3f  Loss %1.4f  Top1 %7.3f%s  Top5 %7.3f%s')
-              :format(epoch, n, trainSize, timer:time().real + dataTime, loss, top1, '%', top5, '%'))
-          else
-              print((' | [#%3d][%3d/%d]    Time %.3f  Loss %1.4f  Top1 %7.3f%s')
-              :format(epoch, n, trainSize, timer:time().real + dataTime, loss, top1, '%'))
-          end
-      end
+      
+      print((' | [#%3d][%3d/%d]    Time %.3f  Loss %1.4f  Top1 %7.3f%s')
+        :format(epoch, n, trainSize, timer:time().real + dataTime, loss, top1, '%'))
 
       -- check that the storage didn't get changed do to an unfortunate getParameters call
       assert(self.params:storage() == self.model:parameters()[1]:storage())
@@ -91,7 +83,7 @@ function Trainer:train(epoch, dataloader)
       dataTimer:reset()
    end
 
-   return top1Sum / N, top5Sum / N, lossSum / N
+   return top1Sum / N, lossSum / N
 end
 
 function Trainer:test(epoch, dataloader)
@@ -100,8 +92,7 @@ function Trainer:test(epoch, dataloader)
    local dataTimer = torch.Timer()
    local size = dataloader:size()
 
-   local nCrops = self.opt.tenCrop and 10 or 1
-   local top1Sum, top5Sum = 0.0, 0.0
+   local top1Sum = 0.0
    local N = 0
 
    self.model:evaluate()
@@ -112,12 +103,11 @@ function Trainer:test(epoch, dataloader)
       self:copyInputs(sample)
 
       local output = self.model:forward(self.input):float()
-      local batchSize = output:size(1) / nCrops
+      local batchSize = output:size(1)
       local loss = self.criterion:forward(self.model.output, self.target)
 
-      local top1, top5 = self:computeScore(output, sample.target, nCrops)
+      local top1 = self:computeScore(output, sample.target)
       top1Sum = top1Sum + top1*batchSize
-      top5Sum = top5Sum + top5*batchSize
       N = N + batchSize
       elpased_time = elapsed_time + timer:time().real + dataTime
 
@@ -125,31 +115,15 @@ function Trainer:test(epoch, dataloader)
       dataTimer:reset()
    end
    self.model:training()
-
-   if _opt.top5_display then
-      print((' * Finished epoch # %d     top1: %7.3f  top5: %6.2f%s'):format(epoch, top1Sum / N, top5Sum / N, '%'))
-      print(' * Elpased time: '..math.floor(elapsed_time/3600)..' hours '..
-                                 math.floor((elapsed_time%3600)/60)..' minutes '..
-                                 math.floor((elapsed_time%3600)%60)..' seconds\n')
- 
-   else
-      print((' * Finished epoch # %d     top1: %7.3f%s'):format(epoch, top1Sum / N, '%'))
-      print(' * Elpased time: '..math.floor(elapsed_time/3600)..' hours '..
-                                 math.floor((elapsed_time%3600)/60)..' minutes '..
-                                 math.floor((elapsed_time%3600)%60)..' seconds\n')
-   end
-
-   return top1Sum / N, top5Sum / N
+   
+   print((' * Finished epoch # %d     top1: %7.3f%s'):format(epoch, top1Sum / N, '%'))
+   print(' * Elpased time: '..math.floor(elapsed_time/3600)..' hours '..
+                              math.floor((elapsed_time%3600)/60)..' minutes '..
+                              math.floor((elapsed_time%3600)%60)..' seconds\n')
+   return top1Sum / N
 end
 
-function Trainer:computeScore(output, target, nCrops)
-   if nCrops > 1 then
-      -- Sum over crops
-      output = output:view(output:size(1) / nCrops, nCrops, output:size(2))
-         --:exp()
-         :sum(2):squeeze(2)
-   end
-
+function Trainer:computeScore(output, target)
    -- Coputes the top1 and top5 error rate
    local batchSize = output:size(1)
 
@@ -162,11 +136,7 @@ function Trainer:computeScore(output, target, nCrops)
    -- Top-1 score
    local top1 = (correct:narrow(2, 1, 1):sum() / batchSize)
 
-   -- Top-5 score, if there are at least 5 classes
-   local len = math.min(5, correct:size(2))
-   local top5 = (correct:narrow(2, 1, len):sum() / batchSize)
-
-   return top1 * 100, top5 * 100
+   return top1 * 100
 end
 
 function Trainer:copyInputs(sample)
@@ -184,7 +154,7 @@ function Trainer:learningRate(epoch)
    -- Training schedule
    local decay = 0
    if self.opt.dataset == 'dreamChallenge' then
-      decay = math.floor((epoch - 1) / 60)
+      decay = math.floor((epoch - 1) / 30)
    end
    return self.opt.LR * math.pow(0.2, decay)
 end
