@@ -19,7 +19,6 @@ RUN cd /root/torch && \
     bash install-deps && \
     ./install.sh
 
-
 WORKDIR /root/torch
 ENV LUA_PATH='/root/.luarocks/share/lua/5.1/?.lua;/root/.luarocks/share/lua/5.1/?/init.lua;/root/torch/install/share/lua/5.1/?.lua;/root/torch/install/share/lua/5.1/?/init.lua;./?.lua;/root/torch/install/share/luajit-2.1.0-beta1/?.lua;/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua'
 ENV LUA_CPATH='/root/.luarocks/lib/lua/5.1/?.so;/root/torch/install/lib/lua/5.1/?.so;./?.so;/usr/local/lib/lua/5.1/?.so;/usr/local/lib/lua/5.1/loadall.so'
@@ -29,14 +28,8 @@ ENV DYLD_LIBRARY_PATH=/root/torch/install/lib:$DYLD_LIBRARY_PATH
 ENV LUA_CPATH='/root/torch/install/lib/?.so;'$LUA_CPATH
 
 
-RUN /root/torch/install/bin/luarocks install nn      && \
-    /root/torch/install/bin/luarocks install optnet  && \
-    /root/torch/install/bin/luarocks install cunn    && \
-    /root/torch/install/bin/luarocks install cudnn   && \
-    /root/torch/install/bin/luarocks install cutorch && \
+RUN /root/torch/install/bin/luarocks install optnet  && \
     /root/torch/install/bin/luarocks install image   
-
-
 
 WORKDIR /
 ARG CACHEBUST=0
