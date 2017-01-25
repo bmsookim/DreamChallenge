@@ -1,12 +1,11 @@
 pwd = ${CURDIR}
 
 preprocessing:
-	cp ./Dockerfiles/preprocessing ./pre-processing/Dockerfile
-	cd ./pre-processing && \
+	cd ./dicom-preprocessing && \
 	nvidia-docker build \
-		-t docker.synapse.org/syn7794493/preprocessing-r1 \
+		-t docker.synapse.org/syn7794493/preprocessing-r2 \
 		.
-	rm ./pre-processing/Dockerfile
+	docker push docker.synapse.org/syn7794493/preprocessing-r2
 training:
 	cp ./Dockerfiles/training ./train/Dockerfile
 	cd ./train && \
