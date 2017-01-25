@@ -59,7 +59,7 @@ for epoch = startEpoch, opt.nEpochs do
       print('==================================================================\n')
    end
 
-   checkpoints.save(epoch, model, trainer.optimState, bestModel, opt)
+   checkpoints.save(epoch, model, bestModel, opt)
 end
 
 print('\n===============[ Test Result Report ]===============')

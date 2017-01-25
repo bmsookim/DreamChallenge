@@ -22,12 +22,9 @@ local SBatchNorm = nn.SpatialBatchNormalization
 
 local function createModel(opt)
    local depth = opt.depth
+   local width = opt.widen_factor
    local shortcutType = opt.shortcutType or 'B'
    local iChannels
-
-   local function Dropout()
-       return nn.Dropout(opt and opt.dropout or 0, nil, true)
-   end
 
    -- The shortcut layer is either identity or 1x1 convolution
    local function shortcut(nInputPlane, nOutputPlane, stride)
@@ -60,9 +57,6 @@ local function createModel(opt)
       s:add(Convolution(nInputPlane,n,3,3,stride,stride,1,1))
       s:add(SBatchNorm(n))
       s:add(ReLU(true))
-      if opt.dropout > 0 then
-          s:add(Dropout())
-      end
       s:add(Convolution(n,n,3,3,1,1,1,1))
       s:add(SBatchNorm(n))
 
@@ -72,7 +66,6 @@ local function createModel(opt)
             :add(shortcut(nInputPlane, n, stride)))
          :add(nn.CAddTable(true))
          :add(ReLU(true))
-         :add(Dropout())
    end
 
    -- The bottleneck residual layer for 50, 101, and 152 layer networks
@@ -84,15 +77,9 @@ local function createModel(opt)
       s:add(Convolution(nInputPlane,n,1,1,1,1,0,0))
       s:add(SBatchNorm(n))
       s:add(ReLU(true))
-      if opt.dropout > 0 then
-          s:add(Dropout())
-      end
       s:add(Convolution(n,n,3,3,stride,stride,1,1))
       s:add(SBatchNorm(n))
       s:add(ReLU(true))
-      if opt.dropout > 0 then
-          s:add(Dropout())
-      end
       s:add(Convolution(n,n*4,1,1,1,1,0,0))
       s:add(SBatchNorm(n * 4))
 
@@ -102,7 +89,6 @@ local function createModel(opt)
             :add(shortcut(nInputPlane, n * 4, stride)))
          :add(nn.CAddTable(true))
          :add(ReLU(true))
-         :add(Dropout())
    end
 
    -- Creates count residual blocks with specified number of features
@@ -119,11 +105,11 @@ local function createModel(opt)
       -- Configurations for ResNet:
       --  num. residual blocks, num features, residual block function
       local cfg = {
-         [18]  = {{2, 2, 2, 2}, 512, basicblock},
-         [34]  = {{3, 4, 6, 3}, 512, basicblock},
-         [50]  = {{3, 4, 6, 3}, 2048, bottleneck},
-         [101] = {{3, 4, 23, 3}, 2048, bottleneck},
-         [152] = {{3, 8, 36, 3}, 2048, bottleneck},
+         [18]  = {{2, 2, 2, 2},  512*width,  basicblock},
+         [34]  = {{3, 4, 6, 3},  512*width,  basicblock},
+         [50]  = {{3, 4, 6, 3},  2048*width, bottleneck},
+         [101] = {{3, 4, 23, 3}, 2048*width, bottleneck},
+         [152] = {{3, 8, 36, 3}, 2048*width, bottleneck},
       }
 
       assert(cfg[depth], 'Invalid depth: ' .. tostring(depth))
@@ -132,15 +118,14 @@ local function createModel(opt)
       print(' | ResNet-' .. depth .. ' ImageNet')
 
       -- The ResNet ImageNet model
-      model:add(Convolution(3,64,7,7,2,2,3,3))
+      model:add(Convolution(3,64,7,7,2,2,3,3))        -- Spatial size : 256 x 256
       model:add(SBatchNorm(64))
       model:add(ReLU(true))
-      model:add(Max(3,3,2,2,1,1))
-      model:add(layer(block, 64, def[1]))
-      model:add(layer(block, 128, def[2], 2))
-      model:add(layer(block, 256, def[3], 2))
-      model:add(layer(block, 512, def[4], 2))
-      model:add(Avg(7, 7, 1, 1))
+      model:add(layer(block, 64*width,  def[1], 2))   -- Spatial size : 128 x 128
+      model:add(layer(block, 128*width, def[2], 2))   -- Spatial size : 64 x 64
+      model:add(layer(block, 256*width, def[3], 2))   -- Spatial size : 32 x 32
+      model:add(layer(block, 512*width, def[4], 2))   -- Spatial size : 16 x 16
+      model:add(Avg(16, 16, 1, 1))
       model:add(nn.View(nFeatures):setNumInputDims(3))
       model:add(nn.Linear(nFeatures, 2))
    else
@@ -174,7 +159,7 @@ local function createModel(opt)
    for k,v in pairs(model:findModules('nn.Linear')) do
       v.bias:zero()
    end
-   model:type(opt.tensorType)
+   model:cuda()
 
    if opt.cudnn == 'deterministic' then
       model:apply(function(m)

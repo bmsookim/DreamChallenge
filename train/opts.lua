@@ -39,6 +39,7 @@ function M.parse(arg)
    cmd:option('-batchSize',       32,      'mini-batch size (1 = pure stochastic)')
    cmd:option('-display_iter',    15,      'display of training iteration')
    cmd:option('-tenCrop',         'false', 'Ten-crop testing')
+   cmd:option('-top5_display',    'false', 'Display Top5 accuracy')
    
    -- Checkpointing options 
    cmd:option('-save',            '/scratch',    'Directory in which to save checkpoints')
@@ -68,7 +69,6 @@ function M.parse(arg)
 
    local opt = cmd:parse(arg or {})
 
-   opt.testOnly = opt.testOnly ~= 'false'
    opt.saveLatest = opt.saveLatest ~= 'false'
    opt.tenCrop = opt.tenCrop ~= 'false'
    opt.shareGradInput = opt.shareGradInput ~= 'false'
@@ -77,7 +77,7 @@ function M.parse(arg)
    opt.top5_display = opt.top5_display ~= 'false'
    opt.saveCut = opt.saveCut ~= 'false'
    opt.save = opt.save .. '/' .. opt.netType .. '-' ..opt.depth .. 'x' .. opt.widen_factor .. '/'
-   opt.featureMap = math.floor(opt.cropSize/32)
+   opt.featureMap = math.floor(opt.imageSize/32)
    if opt.resume ~= '' then 
        opt.resume = opt.resume .. '/' .. opt.netType .. '-' .. opt.depth .. 'x' .. opt.widen_factor .. '/'
    end

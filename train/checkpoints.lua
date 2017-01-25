@@ -98,7 +98,7 @@ function checkpoint.save(epoch, model, isBestModel, opt)
          end
       end
       print("is best model!")
-      -- model = deepCopy(model):float():clearState()
+      model = deepCopy(model):float():clearState()
       torch.save(paths.concat(opt.resume, modelFile), model)
       torch.save(paths.concat(opt.resume, 'best.t7'), {
          epoch = epoch,
