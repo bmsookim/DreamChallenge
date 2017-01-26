@@ -37,3 +37,4 @@ COPY *.lua ./
 COPY train.sh ./
 COPY datasets ./datasets
 COPY networks ./networks
+COPY pretrained ./pretrained

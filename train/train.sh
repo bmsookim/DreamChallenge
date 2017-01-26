@@ -18,4 +18,4 @@ th main.lua \
     -depth ${depth} \
     -retrain pretrained/resnet-${depth}.t7\
 
-# cp -R /scratch/* /modelState/
+cp -R /scratch/* /modelState/
