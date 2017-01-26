@@ -74,7 +74,6 @@ model_file = model_path.split('/')[-1]
 
 checkpoint = checkpoints.best(opt)
 model, criterion = models.setup(opt, checkpoint)
-model._evaluate()
 
 """
 RUN 'inference' phase
