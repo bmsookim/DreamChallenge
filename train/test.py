@@ -1,22 +1,60 @@
-import lutorpy
+import os.path as osp
+import sys
 import csv
-import numpy as np
-import dicom
-import yaml
-import glob
-import sys as py_sys
 
+# add dicom-preprocessing to PYTHONPATH
+def add_path(path):
+    if path not in sys.path:
+        sys.path.insert(0, path)
+this_dir = osp.dirname(__file__)
+
+preprocessor_path = osp.join(this_dir, "..", "dicom-preprocessing")
+add_path(preprocessor_path)
+
+
+import lutorpy as lua
+import yaml
 import ConfigParser
-import argparse
+import glob
+import numpy as np
+
+from util import util
+from util import option
+
+from DataLoader import loader
+from DataLoader import sampler
+
+from procs import Proc
+
 """
-Build  Classifier
+PYTHON
 """
+# Load configuration & merge with arguments
+args = option.args
+with open(args.config, 'rt') as f:
+    config = yaml.safe_load(f.read())
+config = option.merge_args2config(args, config)
+
+# Load data
+sampler = getattr(sampler, config["sampler"])
+data_all, key_all = loader.load(config, sampler)
+
+# build preprocessor
+PROC_NUM = 0
+preprocessor = Proc([data_all], PROC_NUM, config, 'test')
+preprocessor.build_extractor(PROC_NUM)
+
+"""
+TORCH (LUA)
+"""
+# build trained model
 require('torch')
 require('paths')
 require('optim')
 require('nn')
 require('image')
 require('cutorch')
+
 models = require('networks/init')
 opts = require('opts')
 checkpoints = require('checkpoints')
@@ -26,107 +64,82 @@ sys = require('sys')
 torch.setdefaulttensortype('torch.FloatTensor')
 torch.setnumthreads(1)
 
-opt = opts.parse(sys.argv)
-torch.manualSeed(opt.manualSeed)
-cutorch.manualSeedAll(opt.manualSeed)
+opt = opts._parse(sys.argv)
+torch.manualSeed(opt['manualSeed'])
+cutorch.manualSeedAll(opt['manualSeed'])
 
 # get model file path
 model_path = glob.glob('/modelState/**/model*.t7')[0]
-model = torch.load(model_path)
-opt = opts.parse(sys.argv)
-torch.manualSeed(opt.manualSeed)
-cutorch.manualSeedAll(opt.manualSeed)
+model_file = model_path.split('/')[-1]
+
+checkpoint = checkpoints.best(opt)
+model, criterion = models.setup(opt, checkpoint)
+model._evaluate()
 
 """
-Build preprocessor
+RUN 'inference' phase
 """
-# program argument
-parser = argparse.ArgumentParser()
-#### Environment
-parser.add_argument('-p', '--processor',
-        type=int,
-        required=False,
-        default = 1,
-        help='how many use processors')
-parser.add_argument('-g', '--gpu',
-        type = int,
-        required=False,
-        default=1,
-        help='use GPU? in ROI extraction')
-parser.add_argument('-q', '--queue',
-        required=True,
-        help='running configuration file')
-parser.add_argument('-e', '--exams_metadata',
-        type = int,
-        required=False,
-        help='if using exams_metadata')
-parser.add_argument('-f', '--form',
-        type = string,
-        required=False,
-        help='if using exams_metadata')
-parser.add_argument('-v', '--valid',
-        type = string,
-        required=False,
-        help='if using exams_metadata')
-#### Dataset
-parser.add_argument('-c', '--corpus',
-        required=True,
-        help='will be used in preprocessing phase')
-parser.add_argument('-d', '--dataset',
-        required=True,
-        help='dataset in corpus')
-
-args = parser.parse_args()
-
-with open('../pre-processing/config/train.yaml', 'rt') as f:
-    config = yaml.safe_load(f.read())
-
-py_sys.path.insert(0, '../pre-processing')
-from DREAM_DM_preprocessing import App
-from Preprocessor import extractor
-from Dataloader import loader
-
-s_dict = loader.build_image_walker('/metadata/images_crosswalk.tsv')
-
-preprocessor = App(args=args, config=config)
-ext = preprocessor.build_extractor()
-
-result = dict()
-for i, (s_id, exam_idx) in enumerate(s_dict.keys()):
-    print i, len(s_dict.keys())
-    k = (s_id, exam_idx)
-
-    dicom_dict = s_dict[k]
-    for v in dicom_dict.keys():
-        for l in dicom_dict[v].keys():
-            info = dicom_dict[v][l]
-            dcm = dicom.read_file('/inferenceData/' + info['fname'])
-            im = preprocessor.preprocessing_dcm(dcm, l, ext)
-            im = im.reshape(1, 3, 256, 256)
-            t = torch.fromNumpyArray(im)
-            cudat = t._cuda()
-            yt = model._forward(cudat)
-
-            exp = torch.exp(yt)
-            exp_sum = exp._sum()
-            exp = torch.div(exp, exp_sum)
-            score = exp[0][1]
-
-            if s_id not in result:
-                result[s_id] = dict()
-            if l not in result[s_id]:
-                result[s_id][l] = list()
-
-            result[s_id][l].append(float(score))
+IM_SIZE = config['modules']['resize']['size']
 
 f = open('/output/predictions.tsv', 'w')
 fieldnames = ['subjectId', 'laterality', 'confidence']
 writer = csv.DictWriter(f, fieldnames = fieldnames, delimiter='\t')
 writer.writeheader()
 
-for s_id in result.keys():
-    for l in result[s_id].keys():
-        scores = np.array(result[s_id][l])
-        max_score = scores.max()
-        writer.writerow({'subjectId' : s_id, 'laterality' : l, 'confidence' : max_score})
+# each subject and exam
+for k in data_all:
+    s_id, e_id = k
+    dcm_dict = data_all[k]['dcm']
+    exam_dict= data_all[k]['exam']
+
+    dcm_info = dict()
+    dcm_info['s_id'] = s_id
+    dcm_info['e_id'] = e_id
+
+
+    # each laterality
+    for l in dcm_dict.keys():
+        scores = list()
+        dcm_info['laterality'] = l
+        dcm_info['cancer'] = exam_dict['cancer' + l]
+
+        processed_im = preprocessor.process_laterality(dcm_dict[l], dcm_info, exam_dict)
+
+        for im_path, im in processed_im:
+            # convert numpy image to torch cuda tensor
+            im      = im.reshape(1, 3, IM_SIZE['height'], IM_SIZE['width'])
+            im_t    = torch.fromNumpyArray(im)
+
+            # infer
+            infer   = model._forward(im_t._cuda())
+            # calculate score in each image
+            exp = torch.exp(infer)
+            exp = torch.div(exp, exp._sum())
+
+            score = exp[0][1]
+            scores.append(score)
+
+        if len(scores) == 0:
+            scores.append(.5)
+
+        # calculate score for subject&exam
+        scores = np.array(scores)
+
+        score_avg = np.average(scores)
+        score_min = scores.min()
+        score_max = scores.max()
+        score_sum = scores.sum()
+
+        if score_max - score_min < .2:
+            score_fin = score_max
+        else:
+            score_fin = score_avg
+
+        # write result
+        writer.writerow({
+            'subjectId': s_id,
+            'laterality': l,
+            'confidence': score_fin
+        })
+
 f.close()
