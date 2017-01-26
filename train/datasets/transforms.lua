@@ -29,6 +29,7 @@ function M.ColorNormalize(meanstd)
     return function(img)
         img = img:clone()
         img:add(-img:mean())
+        img:div(img:std())
         return img
     end
 end

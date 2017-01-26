@@ -15,9 +15,9 @@ local t = require 'datasets/transforms'
 local ffi = require 'ffi'
 
 local M = {}
-local ImagenetDataset = torch.class('resnet.ImagenetDataset', M)
+local dmisDataset = torch.class('resnet.dmisDataset', M)
 
-function ImagenetDataset:__init(imageInfo, opt, split)
+function dmisDataset:__init(imageInfo, opt, split)
    self.imageInfo = imageInfo[split]
    self.opt = opt
    self.split = split
@@ -25,7 +25,7 @@ function ImagenetDataset:__init(imageInfo, opt, split)
    assert(paths.dirp(self.dir), 'directory does not exist: ' .. self.dir)
 end
 
-function ImagenetDataset:get(i)
+function dmisDataset:get(i)
    local path = ffi.string(self.imageInfo.imagePath[i]:data())
 
    local image = self:_loadImage(paths.concat(self.dir, path))
@@ -37,7 +37,7 @@ function ImagenetDataset:get(i)
    }
 end
 
-function ImagenetDataset:_loadImage(path)
+function dmisDataset:_loadImage(path)
    local ok, input = pcall(function()
       return image.load(path, 3, 'float')
    end)
@@ -59,11 +59,11 @@ function ImagenetDataset:_loadImage(path)
    return input
 end
 
-function ImagenetDataset:size()
+function dmisDataset:size()
    return self.imageInfo.imageClass:size(1)
 end
 
-function ImagenetDataset:preprocess()
+function dmisDataset:preprocess()
    if self.split == 'train' then
       return t.Compose{
           t.Scale(self.opt.imageSize),
@@ -77,4 +77,4 @@ function ImagenetDataset:preprocess()
    end
 end
 
-return M.ImagenetDataset
+return M.dmisDataset
