@@ -134,6 +134,8 @@ for k in data_all:
         else:
             score_fin = score_avg
 
+        print dcm_info
+        print scores
         # write result
         writer.writerow({
             'subjectId': s_id,
