@@ -72,7 +72,6 @@ local function createModel(opt)
             :add(shortcut(nInputPlane, n, stride)))
          :add(nn.CAddTable(true))
          :add(ReLU(true))
-         :add(Dropout())
    end
 
    -- The bottleneck residual layer for 50, 101, and 152 layer networks
@@ -102,7 +101,6 @@ local function createModel(opt)
             :add(shortcut(nInputPlane, n * 4, stride)))
          :add(nn.CAddTable(true))
          :add(ReLU(true))
-         :add(Dropout())
    end
 
    -- Creates count residual blocks with specified number of features
