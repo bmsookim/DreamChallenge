@@ -31,7 +31,6 @@ local checkpoint, optimState = checkpoints.best(opt)
 
 -- Create model
 local model, criterion = models.setup(opt, checkpoint)
-print(model)
 
 -- Data loading
 local trainLoader, valLoader = DataLoader.create(opt)

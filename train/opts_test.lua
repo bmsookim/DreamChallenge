@@ -42,9 +42,8 @@ function M.parse(arg)
    cmd:option('-top5_display',    'false', 'Display Top5 accuracy')
    
    -- Checkpointing options 
-   cmd:option('-save',            '/scratch',    'Directory in which to save checkpoints')
+   cmd:option('-save',            '/modelState',    'Directory in which to save checkpoints')
    cmd:option('-resume',          '/modelState',    'Resume from the latest checkpoint in this directory')
-   cmd:option('-modelState',      '/modelState', 'Directory for saving model state')
    
    -- Optimization options
    cmd:option('-LR',              0.1,     'initial learning rate')
@@ -52,17 +51,17 @@ function M.parse(arg)
    cmd:option('-weightDecay',     1e-4,    'weight decay')
    
    -- Model options
-   cmd:option('-netType',      'resnet', 'Options: resnet | wide-resnet')
+   cmd:option('-netType',      'preresnet',   'Options: resnet | preresnet | wide-resnet')
    cmd:option('-depth',        50,            'ResNet depth: 6n+4', 'number')
-   cmd:option('-widen_factor', 2,             'Wide-Resnet width', 'number')
+   cmd:option('-widen_factor', 1,             'Wide-Resnet width', 'number')
    cmd:option('-dropout',      0,           'Dropout rate')
    cmd:option('-shortcutType', '',            'Options: A | B | C')
    cmd:option('-retrain',      'none',        'fine-tuning, Path to model to retrain with')
    cmd:option('-optimState',   'none',        'Path to an optimState to reload from')
    
    -- Model options
-   cmd:option('-shareGradInput',  'true', 'Share gradInput tensors to reduce memory usage')
-   cmd:option('-optnet',          'false', 'Use optnet to reduce memory usage')
+   cmd:option('-shareGradInput',  'false', 'Share gradInput tensors to reduce memory usage')
+   cmd:option('-optnet',          'true',  'Use optnet to reduce memory usage')
    cmd:option('-resetClassifier', 'false', 'Reset the fully connected layer for fine-tuning')
    cmd:option('-nClasses',         0,      'Number of classes in the dataset')
    cmd:text()

@@ -93,14 +93,13 @@ function checkpoint.save(epoch, model, isBestModel, opt)
       if(epoch ~= 1) then 
          for i=1, (epoch-1) do
             bef_model = 'model_' .. (i) .. '.t7'
-            os.remove(paths.concat(opt.resume, bef_model))
+            os.remove(paths.concat(opt.save, bef_model))
             before_was_best = true
          end
       end
-      print("is best model!")
       model = deepCopy(model):float():clearState()
-      torch.save(paths.concat(opt.resume, modelFile), model)
-      torch.save(paths.concat(opt.resume, 'best.t7'), {
+      torch.save(paths.concat(opt.save, modelFile), model)
+      torch.save(paths.concat(opt.save, 'best.t7'), {
          epoch = epoch,
          modelFile = modelFile,
          optimFile = optimFile,

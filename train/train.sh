@@ -1,5 +1,5 @@
 #!/bin/bash
-export netType='resnet'
+export netType='preresnet'
 export depth=50
 export dataset='dreamChallenge'
 export data='/preprocessedData/dreamCh/'
@@ -16,6 +16,6 @@ th main.lua \
     -LR 1e-4 \
     -imageSize 224 \
     -depth ${depth} \
-    -retrain pretrained/resnet-${depth}.t7\
+    -retrain pretrain/resnet-${depth}.t7\
 
 cp -R /scratch/* /modelState/

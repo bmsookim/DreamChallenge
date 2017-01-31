@@ -74,8 +74,8 @@ function Trainer:train(epoch, dataloader)
       N = N + batchSize
       elapsed_time = elapsed_time + timer:time().real + dataTime
       
-      -- print((' | [#%3d][%3d/%d]    Time %.3f  Loss %1.4f  Top1 %7.3f%s')
-      --        :format(epoch, n, trainSize, timer:time().real + dataTime, loss, top1, '%'))
+      print((' | [#%3d][%3d/%d]    Time %.3f  Loss %1.4f  Top1 %7.3f%s')
+             :format(epoch, n, trainSize, timer:time().real + dataTime, loss, top1, '%'))
       --
       -- xlua.progress(n, trainSize)
       -- check that the storage didn't get changed do to an unfortunate getParameters call

@@ -42,9 +42,8 @@ function M.parse(arg)
    cmd:option('-top5_display',    'false', 'Display Top5 accuracy')
    
    -- Checkpointing options 
-   cmd:option('-save',            '/scratch',    'Directory in which to save checkpoints')
-   cmd:option('-resume',          '/modelState',    'Resume from the latest checkpoint in this directory')
-   cmd:option('-modelState',      '/modelState', 'Directory for saving model state')
+   cmd:option('-save',            '/modelState',    'Directory in which to save checkpoints')
+   cmd:option('-resume',          '/modelState', 'Resume from the latest checkpoint in this directory')
    
    -- Optimization options
    cmd:option('-LR',              0.1,     'initial learning rate')
@@ -76,26 +75,22 @@ function M.parse(arg)
    opt.resetClassifier = opt.resetClassifier ~= 'false'
    opt.top5_display = opt.top5_display ~= 'false'
    opt.saveCut = opt.saveCut ~= 'false'
-   if (opt.netType == 'wide-resnet') then
-       opt.save = opt.save .. '/' .. opt.netType .. '-' ..opt.depth .. 'x' .. opt.widen_factor .. '/'
-   else
-       otp.save = opt.save .. '/' .. opt.netType .. '-' .. opt.depth .. '/'
-   end
+   opt.save = opt.save .. '/' .. opt.netType .. '-' ..opt.depth .. 'x' .. opt.widen_factor .. '/'
    opt.featureMap = math.floor(opt.imageSize/32)
-   if opt.resume ~= '' then
-       if opt.netType == 'wide-resnet' then
-           opt.resume = opt.resume .. '/' .. opt.netType .. '-' .. opt.depth .. 'x' .. opt.widen_factor .. '/'
-       else
-           opt.resume = opt.resume .. '/' .. opt.netTYpe .. '-' .. opt.depth .. '/'
-       end
+   if opt.resume ~= '' then 
+       opt.resume = opt.resume .. '/' .. opt.netType .. '-' .. opt.depth .. 'x' .. opt.widen_factor .. '/'
    end
 
    if not paths.dirp(opt.save) and not paths.mkdir(opt.save) then
       cmd:error('error: unable to create checkpoint directory: ' .. opt.save .. '\n')
+   else
+      print("Making directory : " .. opt.save)
    end
 
    if not paths.dirp(opt.resume) and not paths.mkdir(opt.resume) then
       cmd:error('error: unable to create modelState directory: ' .. opt.save .. '\n')
+   else
+      print("Making directory : " .. opt.resume)
    end
 
    if opt.dataset == 'dreamChallenge' then
@@ -106,8 +101,9 @@ function M.parse(arg)
       -- elseif not paths.dirp(trainDir) then
       --   cmd:error('error: DreamChallengeNet missing `train` directory: ' .. trainDir)
       end
+      -- Default shortcutType=B and nEpochs=200
       opt.shortcutType = opt.shortcutType == '' and 'B' or opt.shortcutType
-      opt.nEpochs = opt.nEpochs == 0 and 90 or opt.nEpochs
+      opt.nEpochs = opt.nEpochs == 0 and 30 or opt.nEpochs
       opt.imageSize = opt.imageSize == 0 and 224 or opt.imageSize
    else
       cmd:error('unknown dataset: ' .. opt.dataset)
