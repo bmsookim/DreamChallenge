@@ -14,12 +14,16 @@ require 'paths'
 require 'optim'
 require 'nn'
 require 'image'
-
 local models = require 'networks/init'
-local opts = require 'opts'
+local opts = require 'opts_test'
 local checkpoints = require 'checkpoints'
 local ffi = require 'ffi'
 local sys = require 'sys'
+
+meanstd={
+    mean = {0.496, 0.496, 0.496},
+    std  = {0.229, 0.229, 0.229},
+}
 
 torch.setdefaulttensortype('torch.FloatTensor')
 torch.setnumthreads(1)
@@ -75,7 +79,7 @@ local function findImages(dir)
    return imagePaths, nImages
 end
 
-testImagePath, nImages = findImages('/preprocessedData/dreamCh/train/')
+testImagePath, nImages = findImages('/preprocessedData/dreamCh/test/')
 
 
 fd = io.open('/preprocessedData/results.txt', 'w')
@@ -83,34 +87,15 @@ fd = io.open('/preprocessedData/results.txt', 'w')
 for i=1,nImages do
    test_path = testImagePath[i]
    test_image = image.load(test_path)
-   interpolation = 'bicubic'
-   size = opt.cropSize
 
-   local w, h = test_image:size(3), test_image:size(2)
-
-   if(w<=h and w==size) or (h<=w and h==size) then
-      test_image = test_image
-   end
-
-   if w < h then
-      test_image = image.scale(test_image, size, h/w * size, interpolation)
-   else
-      test_image = image.scale(test_image, w/h * size, size, interpolation)
-   end
-
-   local w1 = math.ceil((test_image:size(3) -size)/2)
-   local h1 = math.ceil((test_image:size(2) -size)/2)
-
-   test_image = image.crop(test_image, w1, h1, w1+size, h1+size)
    test_image:resize(1, 3, opt.cropSize, opt.cropSize)
-
    result = model:forward(test_image):float()
-
    exp = torch.exp(result)
    exp_sum = exp:sum()
    exp = torch.div(exp, exp_sum)
-
-   fd:write(test_path, '\t', exp[1][2], '\n')
+   print(test_path)
+   print('|-', exp[1][2])
+   --fd:write(test_path, '\t', exp[1][2], '\n')
    -- maxs, indices = torch.max(exp, 2)
 
    -- print('The prediction for '..test_path..' is '..
