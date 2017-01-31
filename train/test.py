@@ -45,6 +45,12 @@ preprocessor = Proc([data_all], PROC_NUM, config, 'test')
 preprocessor.build_extractor(PROC_NUM)
 
 """
+STATIC VARIABLE
+"""
+IM_MEAN = 0.496
+IM_STD  = 0.229
+
+"""
 TORCH (LUA)
 """
 # build trained model
@@ -101,23 +107,26 @@ for k in data_all:
         dcm_info['cancer'] = exam_dict['cancer' + l]
 
         processed_im = preprocessor.process_laterality(dcm_dict[l], dcm_info, exam_dict)
-
         for im_path, im in processed_im:
             # convert numpy image to torch cuda tensor
             im      = im.reshape(1, 3, IM_SIZE['height'], IM_SIZE['width'])
-            im_t    = torch.fromNumpyArray(im)
+            im      = im.astype(np.float64)
+            # normalization for compatibility with TORCH
+            im      = np.divide(im, 255)
+            # color normalization
+            im      = np.subtract(im, IM_MEAN)
 
             # infer
+            im_t    = torch.fromNumpyArray(im)
             infer   = model._forward(im_t._cuda())._float()
-            sys.exit(-1)
             # TORCH: calculate score in each image
             exp     = torch.exp(infer)
             exp_sum = exp._sum()
             exp     = torch.div(exp, exp_sum)
 
+            exp   = exp.asNumpyArray()
             score = exp[0][1]
             scores.append(score)
-
         if len(scores) == 0:
             scores.append(.5)
 
