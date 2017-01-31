@@ -91,16 +91,22 @@ RUN /root/torch/install/bin/luarocks install nn      && \
     /root/torch/install/bin/luarocks install image   
 
 # Copy projects
-COPY dicom-preprocesisng ./dicom-preprocessing
-COPY train ./trian
+WORKDIR /
+COPY dicom-preprocessing/py-faster-rcnn ./dicom-preprocessing/py-faster-rcnn
+COPY dicom-preprocessing/requirements.txt ./dicom-preprocessing/requirements.txt
 
-WORKSPACE /dicom-preprocessing
-COPY dicom-preprocesisng/requirements.txt ./requirements.txt
+WORKDIR /dicom-preprocessing
 RUN  pip install Cython && \
      pip install -r requirements.txt
     
-COPY dicom-preprocesisng/py-faster-rcnn ./py-faster-rcnn
-RUN cd /dicom-preprocessing/py-faster-rcnn/caffe-fast-rcnn && \
+RUN cd ./py-faster-rcnn/caffe-fast-rcnn && \
     make clean && \
     make -j8 && make pycaffe
 
+RUN mv ./py-faster-rcnn /py-faster-rcnn
+
+ARG CACHEBUST=0
+WORKDIR /
+COPY dicom-preprocessing ./dicom-preprocessing
+COPY train ./trian
+RUN cp -R /py-faster-rcnn /dicom-preprocessing/py-faster-rcnn
