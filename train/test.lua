@@ -93,9 +93,10 @@ for i=1,nImages do
    exp = torch.exp(result)
    exp_sum = exp:sum()
    exp = torch.div(exp, exp_sum)
-   print(test_path)
-   print('|-', exp[1][2])
-   --fd:write(test_path, '\t', exp[1][2], '\n')
+
+   --print(test_path)
+   --print('|-', exp[1][2])
+   fd:write(test_path, '\t', exp[1][2], '\n')
    -- maxs, indices = torch.max(exp, 2)
 
    -- print('The prediction for '..test_path..' is '..

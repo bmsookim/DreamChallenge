@@ -97,6 +97,7 @@ COPY dicom-preprocessing/requirements.txt ./dicom-preprocessing/requirements.txt
 
 WORKDIR /dicom-preprocessing
 RUN  pip install Cython && \
+     pip install lutorpy && \
      pip install -r requirements.txt
     
 RUN cd ./py-faster-rcnn/caffe-fast-rcnn && \
@@ -108,5 +109,8 @@ RUN mv ./py-faster-rcnn /py-faster-rcnn
 ARG CACHEBUST=0
 WORKDIR /
 COPY dicom-preprocessing ./dicom-preprocessing
-COPY train ./trian
+COPY train ./train
+RUN rm -rf /dicom-preprocessing/py-faster-rcnn
 RUN cp -R /py-faster-rcnn /dicom-preprocessing/py-faster-rcnn
+
+COPY sc1_infer.sh ./sc1_infer.sh
