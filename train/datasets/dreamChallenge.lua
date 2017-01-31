@@ -63,14 +63,22 @@ function dmisDataset:size()
    return self.imageInfo.imageClass:size(1)
 end
 
+local meanstd = {
+    mean = { 0.496, 0.496, 0.496 },
+    std = { 0.229, 0.229, 0.229 },
+}
+
 function dmisDataset:preprocess()
    if self.split == 'train' then
       return t.Compose{
           t.Scale(self.opt.imageSize),
+          t.ColorNormalize(meanstd),
+          t.HorizontalFlip(0.5),
       }
    elseif self.split == 'val' then
       return t.Compose{
          t.Scale(self.opt.imageSize),
+         t.ColorNormalize(meanstd),
       }
    else
       error('invalid split: ' .. self.split)
