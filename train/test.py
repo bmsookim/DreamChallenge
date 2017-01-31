@@ -23,6 +23,7 @@ from util import option
 
 from DataLoader import loader
 from DataLoader import sampler
+from ImageTools import tools as imTool
 
 from procs import Proc
 
@@ -56,7 +57,7 @@ require('image')
 require('cutorch')
 
 models = require('networks/init')
-opts = require('opts')
+opts = require('opts_test')
 checkpoints = require('checkpoints')
 ffi = require('ffi')
 sys = require('sys')
@@ -69,9 +70,6 @@ torch.manualSeed(opt['manualSeed'])
 cutorch.manualSeedAll(opt['manualSeed'])
 
 # get model file path
-model_path = glob.glob('/modelState/**/model*.t7')[0]
-model_file = model_path.split('/')[-1]
-
 checkpoint = checkpoints.best(opt)
 model, criterion = models.setup(opt, checkpoint)
 
@@ -104,19 +102,23 @@ for k in data_all:
 
         processed_im = preprocessor.process_laterality(dcm_dict[l], dcm_info, exam_dict)
 
+        ii = 0
         for im_path, im in processed_im:
+            imTool.write_im('./' + str(ii) + '.png', im)
+            ii += 1
             # convert numpy image to torch cuda tensor
             im      = im.reshape(1, 3, IM_SIZE['height'], IM_SIZE['width'])
             im_t    = torch.fromNumpyArray(im)
 
             # infer
-            infer   = model._forward(im_t._cuda())
+            infer   = model._forward(im_t._cuda())._float()
             # calculate score in each image
             exp = torch.exp(infer)
             exp = torch.div(exp, exp._sum())
-
             score = exp[0][1]
             scores.append(score)
+
+            print score
 
         if len(scores) == 0:
             scores.append(.5)
@@ -134,8 +136,6 @@ for k in data_all:
         else:
             score_fin = score_avg
 
-        print dcm_info
-        print scores
         # write result
         writer.writerow({
             'subjectId': s_id,
