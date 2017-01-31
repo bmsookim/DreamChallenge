@@ -125,14 +125,6 @@ for k in data_all:
 
             # infer
             im_t    = torch.fromNumpyArray(im)
-            """
-            im_t    = image.load('/preprocessedData/dreamCh/test/0/1626_1_CC_R_0.png')
-            im_t    = im_t.asNumpyArray()
-            im_t    = np.array([im_t])
-            im_t    = torch.fromNumpyArray(im_t)
-            print im_t._size()
-            #im_t._resize(1,3,224,244)
-            """
             infer   = model._forward(im_t._cuda())._float()
             # TORCH: calculate score in each image
             exp     = torch.exp(infer)
@@ -141,7 +133,6 @@ for k in data_all:
             exp   = exp.asNumpyArray()
             score = exp[0][1]
             scores.append(score)
-            print '|-', exp[0][:2]
         if len(scores) == 0:
             scores.append(.5)
         # calculate score for subject&exam
@@ -152,14 +143,14 @@ for k in data_all:
         score_max = scores.max()
         score_sum = scores.sum()
 
+
         if score_max - score_min < .2:
             score_fin = score_max
         else:
             score_fin = score_avg
-
         # write result
         writer.writerow({
-            'subjectId': s_id,
+            'subjectId': s_id.trim(),
             'laterality': l,
             'confidence': score_fin
         })
