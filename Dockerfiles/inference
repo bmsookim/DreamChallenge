@@ -49,10 +49,24 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 ENV CUDA_HOME=/usr/local/cuda
 
 
-#WORKDIR /opt/opencv
-#RUN mkdir build
-#WORKDIR /opt/opencv/build
-#RUN pip install numpy
+# install opencv
+RUN apt-get install -y \
+    libprotobuf-dev \
+    libleveldb-dev \
+    libsnappy-dev \
+    libopencv-dev \
+    libhdf5-serial-dev \
+    protobuf-compiler \
+    libgflags-dev \
+    libgoogle-glog-dev \
+    liblmdb-dev \
+    libatlas-base-dev
+RUN apt-get install --no-install-recommends libboost-all-dev -y
+
+RUN apt-get install -y \
+    python-opencv \
+    libyaml-cpp-dev \
+    python-tk
 
 # install torch
 WORKDIR /opt
@@ -69,53 +83,24 @@ ENV LD_LIBRARY_PATH=/root/torch/install/lib:$LD_LIBRARY_PATH
 ENV DYLD_LIBRARY_PATH=/root/torch/install/lib:$DYLD_LIBRARY_PATH
 ENV LUA_CPATH='/root/torch/install/lib/?.so;'$LUA_CPATH
 
-# install opencv
-RUN apt-get install python-opencv -y
-
-    # install dependencies
-RUN apt-get install -y \
-    libprotobuf-dev \
-    libleveldb-dev \
-    libsnappy-dev \
-    libopencv-dev \
-    libhdf5-serial-dev \
-    protobuf-compiler \
-    libgflags-dev \
-    libgoogle-glog-dev \
-    liblmdb-dev \
-    libatlas-base-dev
-RUN apt-get install --no-install-recommends libboost-all-dev -y
-RUN pip install easydict cython
-
-RUN ./install.sh
-
-# move preprocessing scripts
-RUN apt-get install libyaml-cpp-dev python-tk  -y
-
 RUN /root/torch/install/bin/luarocks install nn      && \
     /root/torch/install/bin/luarocks install optnet  && \
     /root/torch/install/bin/luarocks install cunn    && \
     /root/torch/install/bin/luarocks install cudnn   && \
     /root/torch/install/bin/luarocks install cutorch && \
     /root/torch/install/bin/luarocks install image   
-RUN /root/torch/install/bin/luarocks install python  
 
+# Copy projects
+COPY dicom-preprocesisng ./dicom-preprocessing
+COPY train ./trian
 
-WORKDIR /
-COPY pre-processing ./pre-processing
+WORKSPACE /dicom-preprocessing
+COPY dicom-preprocesisng/requirements.txt ./requirements.txt
+RUN  pip install Cython && \
+     pip install -r requirements.txt
+    
+COPY dicom-preprocesisng/py-faster-rcnn ./py-faster-rcnn
+RUN cd /dicom-preprocessing/py-faster-rcnn/caffe-fast-rcnn && \
+    make clean && \
+    make -j8 && make pycaffe
 
-WORKDIR /pre-processing
-RUN pip install -r requirements.txt
-RUN ./install.sh
-RUN pip install lutorpy
-
-ARG CACHEBUST=0
-
-WORKDIR /
-ARG CACHEBUST=0
-COPY train ./train
-COPY test ./test
-
-WORKDIR /
-COPY sc1_infer.sh ./
-COPY sc2_infer.sh ./
