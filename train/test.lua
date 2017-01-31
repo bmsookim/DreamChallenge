@@ -37,6 +37,8 @@ local checkpoint, optimState = checkpoints.best(opt)
 local model, criterion = models.setup(opt, checkpoint)
 model:evaluate()
 
+print(opt.resume)
+
 local function findImages(dir)
    local imagePaths = torch.CharTensor()
    local extensionList = {'jpg', 'png', 'jpeg', 'JPG', 'PNG', 'JPEG', 'ppm', 'PPM', 'bmp', 'BMP'}
@@ -73,7 +75,7 @@ local function findImages(dir)
    return imagePaths, nImages
 end
 
-testImagePath, nImages = findImages('/preprocessedData/dreamCh/test/')
+testImagePath, nImages = findImages('/preprocessedData/dreamCh/train/')
 
 
 fd = io.open('/preprocessedData/results.txt', 'w')
