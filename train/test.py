@@ -23,7 +23,6 @@ from util import option
 
 from DataLoader import loader
 from DataLoader import sampler
-from ImageTools import tools as imTool
 
 from procs import Proc
 
@@ -72,6 +71,7 @@ cutorch.manualSeedAll(opt['manualSeed'])
 # get model file path
 checkpoint = checkpoints.best(opt)
 model, criterion = models.setup(opt, checkpoint)
+model._evaluate()
 
 """
 RUN 'inference' phase
@@ -102,23 +102,21 @@ for k in data_all:
 
         processed_im = preprocessor.process_laterality(dcm_dict[l], dcm_info, exam_dict)
 
-        ii = 0
         for im_path, im in processed_im:
-            imTool.write_im('./' + str(ii) + '.png', im)
-            ii += 1
             # convert numpy image to torch cuda tensor
             im      = im.reshape(1, 3, IM_SIZE['height'], IM_SIZE['width'])
             im_t    = torch.fromNumpyArray(im)
 
             # infer
             infer   = model._forward(im_t._cuda())._float()
-            # calculate score in each image
-            exp = torch.exp(infer)
-            exp = torch.div(exp, exp._sum())
+            sys.exit(-1)
+            # TORCH: calculate score in each image
+            exp     = torch.exp(infer)
+            exp_sum = exp._sum()
+            exp     = torch.div(exp, exp_sum)
+
             score = exp[0][1]
             scores.append(score)
-
-            print score
 
         if len(scores) == 0:
             scores.append(.5)
