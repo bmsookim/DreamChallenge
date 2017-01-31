@@ -43,17 +43,17 @@ function M.parse(arg)
    
    -- Checkpointing options 
    cmd:option('-save',            '/modelState',    'Directory in which to save checkpoints')
-   cmd:option('-resume',          '/modelState',    'Resume from the latest checkpoint in this directory')
+   cmd:option('-resume',          '/modelState', 'Resume from the latest checkpoint in this directory')
    
    -- Optimization options
    cmd:option('-LR',              0.1,     'initial learning rate')
    cmd:option('-momentum',        0.9,     'momentum')
-   cmd:option('-weightDecay',     1e-4,    'weight decay')
+   cmd:option('-weightDecay',     5e-4,    'weight decay')
    
    -- Model options
-   cmd:option('-netType',      'preresnet',   'Options: resnet | preresnet | wide-resnet')
+   cmd:option('-netType',      'resnet',   'Options: resnet | preresnet | wide-resnet')
    cmd:option('-depth',        50,            'ResNet depth: 6n+4', 'number')
-   cmd:option('-widen_factor', 1,             'Wide-Resnet width', 'number')
+   cmd:option('-widen_factor', 2,             'Wide-Resnet width', 'number')
    cmd:option('-dropout',      0,           'Dropout rate')
    cmd:option('-shortcutType', '',            'Options: A | B | C')
    cmd:option('-retrain',      'none',        'fine-tuning, Path to model to retrain with')
@@ -83,10 +83,14 @@ function M.parse(arg)
 
    if not paths.dirp(opt.save) and not paths.mkdir(opt.save) then
       cmd:error('error: unable to create checkpoint directory: ' .. opt.save .. '\n')
+   else
+      print("Making directory : " .. opt.save)
    end
 
    if not paths.dirp(opt.resume) and not paths.mkdir(opt.resume) then
       cmd:error('error: unable to create modelState directory: ' .. opt.save .. '\n')
+   else
+      print("Making directory : " .. opt.resume)
    end
 
    if opt.dataset == 'dreamChallenge' then
@@ -99,8 +103,8 @@ function M.parse(arg)
       end
       -- Default shortcutType=B and nEpochs=200
       opt.shortcutType = opt.shortcutType == '' and 'B' or opt.shortcutType
-      opt.nEpochs = opt.nEpochs == 0 and 200 or opt.nEpochs
-      opt.imageSize = opt.imageSize == 0 and 1024 or opt.imageSize
+      opt.nEpochs = opt.nEpochs == 0 and 30 or opt.nEpochs
+      opt.imageSize = opt.imageSize == 0 and 224 or opt.imageSize
    else
       cmd:error('unknown dataset: ' .. opt.dataset)
    end
