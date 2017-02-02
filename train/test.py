@@ -90,7 +90,7 @@ fieldnames = ['subjectId', 'laterality', 'confidence']
 writer = csv.DictWriter(f, fieldnames = fieldnames, delimiter='\t')
 writer.writeheader()
 
-
+write_set = set()
 # each subject and exam
 for k in data_all:
     s_id, e_id = k
@@ -108,7 +108,6 @@ for k in data_all:
         dcm_info['cancer'] = exam_dict['cancer' + l]
 
         processed_im = preprocessor.process_laterality(dcm_dict[l], dcm_info, exam_dict)
-        print dcm_info
         for im_meta, im in processed_im:
             #im =  cv2.imread('/preprocessedData/dreamCh/test/0/1626_1_CC_R_0.png')
             # convert numpy image to torch cuda tensor
@@ -149,10 +148,14 @@ for k in data_all:
         else:
             score_fin = score_avg
         # write result
-        writer.writerow({
-            'subjectId': s_id.trim(),
-            'laterality': l,
-            'confidence': score_fin
-        })
+
+        s_id = s_id.strip()
+        if s_id not in write_set:
+            write_set.add(s_id)
+            writer.writerow({
+                'subjectId': s_id,
+                'laterality': l,
+                'confidence': score_fin
+            })
 
 f.close()
