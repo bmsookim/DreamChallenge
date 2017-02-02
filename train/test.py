@@ -133,7 +133,7 @@ for k in data_all:
             score = exp[0][1]
             scores.append(score)
         if len(scores) == 0:
-            scores.append(.5)
+            scores.append(.3)
         # calculate score for subject&exam
         scores = np.array(scores)
 
