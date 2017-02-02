@@ -19,7 +19,7 @@ function M.parse(arg)
    cmd:text()
    cmd:text('Options:')
    -- General options
-   cmd:option('-data',       '/preprocessedData/dreamCh',         'Path to dataset')
+   cmd:option('-data',       '/',         'Path to dataset')
    cmd:option('-dataset',    'dreamChallenge',           'Options: dreamChallenge')
    cmd:option('-manualSeed', 0,          'Manually set RNG seed')
    cmd:option('-nGPU',       2,          'Number of GPUs to use by default')
