@@ -114,3 +114,4 @@ RUN rm -rf /dicom-preprocessing/py-faster-rcnn
 RUN cp -R /py-faster-rcnn /dicom-preprocessing/py-faster-rcnn
 
 COPY sc1_infer.sh ./sc1_infer.sh
+COPY sc2_infer.sh ./sc2_infer.sh
