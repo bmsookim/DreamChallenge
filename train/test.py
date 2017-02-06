@@ -107,48 +107,53 @@ for k in data_all:
         dcm_info['laterality'] = l
         dcm_info['cancer'] = exam_dict['cancer' + l]
 
-        processed_im = preprocessor.process_laterality(dcm_dict[l], dcm_info, exam_dict)
-        for im_meta, im in processed_im:
-            #im =  cv2.imread('/preprocessedData/dreamCh/test/0/1626_1_CC_R_0.png')
-            # convert numpy image to torch cuda tensor
-            im      = np.array([[
-                im[:,:,0],
-                im[:,:,1],
-                im[:,:,2],
-            ]])
-            im      = im.astype(np.float64)
-            # normalization for compatibility with TORCH
-            im      = np.divide(im, 255)
-            # color normalization
-            #im      = np.subtract(im, IM_MEAN)
+        try:
+            processed_im = preprocessor.process_laterality(dcm_dict[l], dcm_info, exam_dict)
+            for im_meta, im in processed_im:
+                print im_meta
 
-            # infer
-            im_t    = torch.fromNumpyArray(im)
-            infer   = model._forward(im_t._cuda())._float()
-            # TORCH: calculate score in each image
-            exp     = torch.exp(infer)
-            exp_sum = exp._sum()
-            exp     = torch.div(exp, exp_sum)
-            exp   = exp.asNumpyArray()
-            score = exp[0][1]
-            scores.append(score)
-        if len(scores) == 0:
-            scores.append(.3)
-        # calculate score for subject&exam
-        scores = np.array(scores)
+                #im =  cv2.imread('/preprocessedData/dreamCh/test/0/1626_1_CC_R_0.png')
+                # convert numpy image to torch cuda tensor
+                im      = np.array([[
+                    im[:,:,0],
+                    im[:,:,1],
+                    im[:,:,2],
+                ]])
+                im      = im.astype(np.float64)
+                # normalization for compatibility with TORCH
+                im      = np.divide(im, 255)
+                # color normalization
+                #im      = np.subtract(im, IM_MEAN)
 
-        score_avg = np.average(scores)
-        score_min = scores.min()
-        score_max = scores.max()
-        score_sum = scores.sum()
+                # infer
+                im_t    = torch.fromNumpyArray(im)
+                infer   = model._forward(im_t._cuda())._float()
+                # TORCH: calculate score in each image
+                exp     = torch.exp(infer)
+                exp_sum = exp._sum()
+                exp     = torch.div(exp, exp_sum)
+                exp   = exp.asNumpyArray()
+                score = exp[0][1]
+                scores.append(score)
+            if len(scores) == 0:
+                scores.append(.3)
+            # calculate score for subject&exam
+            scores = np.array(scores)
+
+            score_avg = np.average(scores)
+            score_min = scores.min()
+            score_max = scores.max()
+            score_sum = scores.sum()
 
 
-        if score_max - score_min < .2:
-            score_fin = score_max
-        else:
-            score_fin = score_avg
+            if score_max - score_min < .2:
+                score_fin = score_max
+            else:
+                score_fin = score_avg
+        except:
+            score_fin = .3
+
         # write result
-
         s_id = s_id.strip()
         if s_id not in write_set:
             write_set.add(s_id)
