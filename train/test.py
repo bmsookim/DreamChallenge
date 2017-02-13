@@ -110,8 +110,6 @@ for k in data_all:
         try:
             processed_im = preprocessor.process_laterality(dcm_dict[l], dcm_info, exam_dict)
             for im_meta, im in processed_im:
-                print im_meta
-
                 #im =  cv2.imread('/preprocessedData/dreamCh/test/0/1626_1_CC_R_0.png')
                 # convert numpy image to torch cuda tensor
                 im      = np.array([[
@@ -151,7 +149,7 @@ for k in data_all:
             else:
                 score_fin = score_avg
         except:
-            score_fin = .3
+            score_fin = .2
 
         # write result
         s_id = s_id.strip()
