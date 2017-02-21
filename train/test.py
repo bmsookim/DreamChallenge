@@ -152,9 +152,9 @@ for k in data_all:
             score_fin = .2
 
         # write result
-        s_id = s_id.strip()
-        if s_id not in write_set:
-            write_set.add(s_id)
+        write_key = (s_id.strip(), l)
+        if write_key not in write_set:
+            write_set.add(write_key)
             writer.writerow({
                 'subjectId': s_id,
                 'laterality': l,
