@@ -10,7 +10,6 @@
 --
 
 local checkpoint = {}
-local before_was_best = false
 
 local function deepCopy(tbl)
    -- creates a copy of a network with new modules and the same tensors
@@ -61,23 +60,6 @@ function checkpoint.best(opt)
    return best
 end
 
-function checkpoint.scratch(opt)
-   if opt.resume == 'none' then
-      return nil
-   end
-
-   local latestPath = paths.concat(opt.save, 'best.t7')
-   if not paths.filep(latestPath) then
-      return nil
-   end
-
-   print('=> Converting checkpoint ' .. latestPath)
-   local latest = torch.load(latestPath)
-   os.remove(paths.concat(opt.save, latest.optimFile))
-
-   return latest
-end
-
 function checkpoint.save(epoch, model, isBestModel, opt)
    -- don't save the DataParallelTable for easier loading on other machines
    if torch.type(model) == 'nn.DataParallelTable' then
@@ -94,7 +76,6 @@ function checkpoint.save(epoch, model, isBestModel, opt)
          for i=1, (epoch-1) do
             bef_model = 'model_' .. (i) .. '.t7'
             os.remove(paths.concat(opt.save, bef_model))
-            before_was_best = true
          end
       end
       model = deepCopy(model):float():clearState()
@@ -104,8 +85,6 @@ function checkpoint.save(epoch, model, isBestModel, opt)
          modelFile = modelFile,
          optimFile = optimFile,
       })
-   else
-      before_was_best = false
    end
 end
 

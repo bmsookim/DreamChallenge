@@ -13,6 +13,7 @@
 
 local nn = require 'nn'
 require 'cunn'
+require 'nnlr'
 
 local Convolution = cudnn.SpatialConvolution
 local Avg = cudnn.SpatialAveragePooling
@@ -60,9 +61,6 @@ local function createModel(opt)
       s:add(Convolution(nInputPlane,n,3,3,stride,stride,1,1))
       s:add(SBatchNorm(n))
       s:add(ReLU(true))
-      if opt.dropout > 0 then
-          s:add(Dropout())
-      end
       s:add(Convolution(n,n,3,3,1,1,1,1))
       s:add(SBatchNorm(n))
 
@@ -83,15 +81,9 @@ local function createModel(opt)
       s:add(Convolution(nInputPlane,n,1,1,1,1,0,0))
       s:add(SBatchNorm(n))
       s:add(ReLU(true))
-      if opt.dropout > 0 then
-          s:add(Dropout())
-      end
       s:add(Convolution(n,n,3,3,stride,stride,1,1))
       s:add(SBatchNorm(n))
       s:add(ReLU(true))
-      if opt.dropout > 0 then
-          s:add(Dropout())
-      end
       s:add(Convolution(n,n*4,1,1,1,1,0,0))
       s:add(SBatchNorm(n * 4))
 
@@ -127,20 +119,33 @@ local function createModel(opt)
       assert(cfg[depth], 'Invalid depth: ' .. tostring(depth))
       local def, nFeatures, block = table.unpack(cfg[depth])
       iChannels = 64
-      print(' | ResNet-' .. depth .. ' ImageNet')
+      print(' | ResNet-' .. depth .. ' DreamChallenge')
 
       -- The ResNet ImageNet model
       model:add(Convolution(3,64,7,7,2,2,3,3))
+        --:learningRate('weight', 0.1)
+        --:learningRate('bias', 0.1)
       model:add(SBatchNorm(64))
       model:add(ReLU(true))
       model:add(Max(3,3,2,2,1,1))
       model:add(layer(block, 64, def[1]))
+        --:learningRate('weight', 0.1)
+        --:learningRate('bias', 0.1)
       model:add(layer(block, 128, def[2], 2))
+        --:learningRate('weight', 0.1)
+        --:learningRate('bias', 0.1)
       model:add(layer(block, 256, def[3], 2))
+        --:learningRate('weight', 0.1)
+        --:learningRate('bias', 0.1)
       model:add(layer(block, 512, def[4], 2))
       model:add(Avg(7, 7, 1, 1))
       model:add(nn.View(nFeatures):setNumInputDims(3))
-      model:add(nn.Linear(nFeatures, 2))
+      model:add(nn.Linear(nFeatures, 100))
+        --:learningRate('weight', 10)
+        --:learningRate('bias', 20)
+      model:add(SBatchNorm(100))
+      model:add(ReLU(true))
+      model:add(nn.Linear(100, 2))
    else
       error('invalid dataset: ' .. opt.dataset)
    end

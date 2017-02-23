@@ -7,6 +7,7 @@ Torch/preprocessedData/
 Torch/modelState/
 Torch/scratch/
 diff/data/*
+*.t7
 
 # Created by https://www.gitignore.io/api/python,sublimetext,pycharm
 

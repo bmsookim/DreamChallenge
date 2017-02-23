@@ -64,20 +64,19 @@ function dmisDataset:size()
 end
 
 local meanstd = {
-    mean = { 0.496, 0.496, 0.496 },
+    mean = { 0.492, 0.492, 0.492 },
     std = { 0.229, 0.229, 0.229 },
 }
 
 function dmisDataset:preprocess()
    if self.split == 'train' then
       return t.Compose{
-          t.Scale(self.opt.imageSize),
           t.ColorNormalize(meanstd),
           t.HorizontalFlip(0.5),
+          t.VerticalFlip(0.5),
       }
    elseif self.split == 'val' then
       return t.Compose{
-         t.Scale(self.opt.imageSize),
          t.ColorNormalize(meanstd),
       }
    else

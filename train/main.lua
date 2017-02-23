@@ -1,4 +1,4 @@
---
+-- ***********************************************************************
 --  Copyright (c) 2016, DMIS, Digital Mammography DREAM Challenge Team.
 --  All rights reserved.
 --
@@ -7,7 +7,7 @@
 --
 --  Korea University, Data-Mining Lab
 --  Digital Mammography DREAM Challenge Torch Implementation
---
+-- ***********************************************************************
 
 require 'torch'
 require 'paths'
@@ -40,13 +40,12 @@ local trainer = Trainer(model, criterion, opt, optimState)
 
 local startEpoch = checkpoint and checkpoint.epoch + 1 or opt.epochNumber
 local bestTop1 = 0
-local bestTop5 = 0
 for epoch = startEpoch, opt.nEpochs do
    -- Train for a single epoch
-   local trainTop1, trainTop5, trainLoss = trainer:train(epoch, trainLoader)
+   local trainTop1, trainLoss = trainer:train(epoch, trainLoader)
 
    -- Run model on validation set
-   local testTop1, testTop5 = trainer:test(epoch, valLoader)
+   local testTop1  = trainer:test(epoch, valLoader)
 
    local bestModel = false
    if testTop1 > bestTop1 then
@@ -63,7 +62,7 @@ end
 
 print('\n===============[ Test Result Report ]===============')
 print(' * Dataset\t: '..opt.dataset)
-print(' * Network\t: '..opt.netType..' '..opt.depth..'x'..opt.widen_factor)
+print(' * Network\t: '..opt.netType..' '..opt.depth)
 print(' * Dropout\t: '..opt.dropout)
 print(' * nGPU\t\t: '..opt.nGPU)
 print(' * Top1\t\t: '..string.format('%6.3f', bestTop1)..'%')

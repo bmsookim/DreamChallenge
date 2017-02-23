@@ -30,6 +30,7 @@ function M.ColorNormalize(meanstd)
         img = img:clone()
         for i=1,3 do
             img[i]:add(-meanstd.mean[i])
+            img[i]:div(meanstd.std[i])
         end
         return img
     end
@@ -171,6 +172,15 @@ function M.HorizontalFlip(prob)
       end
       return input
    end
+end
+
+function M.VerticalFlip(prob)
+    return function(input)
+        if torch.uniform() < prob then
+            input = image.vflip(input)
+        end
+        return input
+    end
 end
 
 function M.Rotation(deg)

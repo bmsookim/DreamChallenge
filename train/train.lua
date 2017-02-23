@@ -13,8 +13,6 @@ local optim = require 'optim'
 
 local M = {}
 local Trainer = torch.class('resnet.Trainer', M)
-local opts = require 'opts'
-local _opt = opts.parse(arg)
 local elapsed_time = 0
 
 function Trainer:__init(model, criterion, opt, optimState)
@@ -44,10 +42,10 @@ function Trainer:train(epoch, dataloader)
    end
 
    local trainSize = dataloader:size()
-   local top1Sum, top5Sum, lossSum = 0.0, 0.0, 0.0
+   local top1Sum, lossSum = 0.0, 0.0, 0.0
    local N = 0
 
-   print('=> Training epoch # ' .. epoch)
+   print(' => Training epoch # ' .. epoch .. " : [LR = " .. self.optimState.learningRate .. "]")
    -- set the batch norm to training mode
    self.model:training()
 
@@ -69,15 +67,12 @@ function Trainer:train(epoch, dataloader)
 
       local top1, top5 = self:computeScore(output, sample.target, 1)
       top1Sum = top1Sum + top1*batchSize
-      top5Sum = top5Sum + top5*batchSize
       lossSum = lossSum + loss*batchSize
       N = N + batchSize
       elapsed_time = elapsed_time + timer:time().real + dataTime
       
-      print((' | [#%3d][%3d/%d]    Time %.3f  Loss %1.4f  Top1 %7.3f%s')
-             :format(epoch, n, trainSize, timer:time().real + dataTime, loss, top1, '%'))
-      --
-      -- xlua.progress(n, trainSize)
+      if n % 100 == 0 then print((' | [#%3d][%3d/%d]    Time %.3f  Loss %1.4f  Top1 %7.3f%s')
+             :format(epoch, n, trainSize, timer:time().real + dataTime, loss, top1, '%')) end
       -- check that the storage didn't get changed do to an unfortunate getParameters call
       assert(self.params:storage() == self.model:parameters()[1]:storage())
 
@@ -85,7 +80,7 @@ function Trainer:train(epoch, dataloader)
       dataTimer:reset()
    end
 
-   return top1Sum / N, top5Sum / N, lossSum / N
+   return top1Sum / N, lossSum / N
 end
 
 function Trainer:test(epoch, dataloader)
@@ -95,7 +90,7 @@ function Trainer:test(epoch, dataloader)
    local size = dataloader:size()
 
    local nCrops = self.opt.tenCrop and 10 or 1
-   local top1Sum, top5Sum = 0.0, 0.0
+   local top1Sum = 0.0
    local N = 0
 
    self.model:evaluate()
@@ -109,9 +104,8 @@ function Trainer:test(epoch, dataloader)
       local batchSize = output:size(1) / nCrops
       local loss = self.criterion:forward(self.model.output, self.target)
 
-      local top1, top5 = self:computeScore(output, sample.target, nCrops)
+      local top1 = self:computeScore(output, sample.target, nCrops)
       top1Sum = top1Sum + top1*batchSize
-      top5Sum = top5Sum + top5*batchSize
       N = N + batchSize
       elpased_time = elapsed_time + timer:time().real + dataTime
 
@@ -124,7 +118,7 @@ function Trainer:test(epoch, dataloader)
    print(' * Elpased time: '..math.floor(elapsed_time/3600)..' hours '..
                               math.floor((elapsed_time%3600)/60)..' minutes '..
                               math.floor((elapsed_time%3600)%60)..' seconds\n')
-   return top1Sum / N, top5Sum / N
+   return top1Sum / N
 end
 
 function Trainer:computeScore(output, target, nCrops)
@@ -147,20 +141,26 @@ function Trainer:computeScore(output, target, nCrops)
    -- Top-1 score
    local top1 = (correct:narrow(2, 1, 1):sum() / batchSize)
 
-   -- Top-5 score, if there are at least 5 classes
-   local len = math.min(5, correct:size(2))
-   local top5 = (correct:narrow(2, 1, len):sum() / batchSize)
+   return top1 * 100
+end
 
-   return top1 * 100, top5 * 100
+local function getCudaTensorType(tensorType)
+    if tensorType == 'torch.CudaHalfTensor' then
+        return cutorch.createCudaHostHalfTensor()
+    elseif tensorType == 'torch.CudaDoubleTensor' then
+        return cutorch.createCudaHostDoubleTensor()
+    else
+        return cutorch.createCudaHostTensor()
+    end
 end
 
 function Trainer:copyInputs(sample)
    -- Copies the input to a CUDA tensor, if using 1 GPU, or to pinned memory,
    -- if using DataParallelTable. The target is always copied to a CUDA tensor
    self.input = self.input or (self.opt.nGPU == 1
-      and torch.CudaTensor()
-      or cutorch.createCudaHostTensor())
-   self.target = self.target or torch.CudaTensor()
+        and torch[self.opt.tensorType:match('torch.(%a+)')]()
+        or getCudaTensorType(self.opt.tensorType))
+   self.target = self.target or (torch.CudaTensor() and torch.CudaLongTensor())
    self.input:resize(sample.input:size()):copy(sample.input)
    self.target:resize(sample.target:size()):copy(sample.target)
 end
@@ -169,9 +169,9 @@ function Trainer:learningRate(epoch)
    -- Training schedule
    local decay = 0
    if self.opt.dataset == 'dreamChallenge' then
-      decay = math.floor((epoch - 1) / 60)
+      decay = math.floor((epoch - 1) / 10)
    end
-   return self.opt.LR * math.pow(0.2, decay)
+   return self.opt.LR * math.pow(0.5, decay)
 end
 
 return M.Trainer
