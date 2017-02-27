@@ -145,6 +145,7 @@ local function createModel(opt)
         :learningRate('bias', 20)
       model:add(SBatchNorm(100))
       model:add(ReLU(true))
+      model:add(Dropout())
       model:add(nn.Linear(100, 2))
    else
       error('invalid dataset: ' .. opt.dataset)
