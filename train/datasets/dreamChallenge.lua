@@ -77,6 +77,7 @@ function dmisDataset:preprocess()
           t.VerticalFlip(0.5),
       }
    elseif self.split == 'val' then
+      local Crop = t.CenterCrop
       return t.Compose{
          t.Scale(256),
          t.ColorNormalize(meanstd),
