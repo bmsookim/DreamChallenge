@@ -18,9 +18,15 @@ import ConfigParser
 import glob
 import numpy as np
 import cv2
+from pprint import pprint
 
 from util import util
 from util import option
+
+from ImageTools import tools as imTool
+from ImageTools import coords as coordTool
+from ImageTools import roi
+from ImageTools import crop
 
 from DataLoader import loader
 from DataLoader import sampler
@@ -35,15 +41,16 @@ args = option.args
 with open(args.config, 'rt') as f:
     config = yaml.safe_load(f.read())
 config = option.merge_args2config(args, config)
+pprint(config)
 
 # Load data
 sampler = getattr(sampler, config["sampler"])
-data_all, key_all = loader.load(config, sampler)
-
+data_all, key_all, _ = loader.load(config, sampler)
 # build preprocessor
 PROC_NUM = 0
 preprocessor = Proc([data_all], PROC_NUM, config, 'test')
 preprocessor.build_extractor(PROC_NUM)
+preprocessor.build_sim_model(PROC_NUM)
 
 """
 STATIC VARIABLE
@@ -63,7 +70,8 @@ require('image')
 require('cutorch')
 
 models      = require('networks/init')
-opts        = require('opts_test')
+#opts        = require('opts_test')
+opts        = require('opts')
 checkpoints = require('checkpoints')
 ffi         = require('ffi')
 sys         = require('sys')
@@ -92,7 +100,7 @@ writer.writeheader()
 
 write_set = set()
 # each subject and exam
-for k in data_all:
+for k in key_all:
     s_id, e_id = k
     dcm_dict = data_all[k]['dcm']
     exam_dict= data_all[k]['exam']
@@ -108,8 +116,22 @@ for k in data_all:
         dcm_info['cancer'] = exam_dict['cancer' + l]
 
         try:
-            processed_im = preprocessor.process_laterality(dcm_dict[l], dcm_info, exam_dict)
-            for im_meta, im in processed_im:
+            imgs, rois, roi_diff, roi_sim, roi_score = preprocessor.process_laterality(dcm_dict[l], dcm_info, exam_dict)
+            filtered_roi = preprocessor.process_roi_filtering(roi_sim, roi_score)
+
+            processed_im = list()
+            for r in ['mass']:
+                for view, idx in filtered_roi[r]:
+                    """
+                    im_og = imgs[view]['gray']
+                    roi   = rois[view][r][idx]
+                    """
+                    im_og = imgs[view]['roi'][r][idx]
+                    imTool.write_im("./a.png", im_og)
+
+                    processed_im.append(im_og)
+
+            for im in processed_im:
                 #im =  cv2.imread('/preprocessedData/dreamCh/test/0/1626_1_CC_R_0.png')
                 # convert numpy image to torch cuda tensor
                 im      = np.array([[
@@ -134,7 +156,7 @@ for k in data_all:
                 score = exp[0][1]
                 scores.append(score)
             if len(scores) == 0:
-                scores.append(.3)
+                scores.append(.2)
             # calculate score for subject&exam
             scores = np.array(scores)
 
@@ -143,16 +165,18 @@ for k in data_all:
             score_max = scores.max()
             score_sum = scores.sum()
 
-
             if score_max - score_min < .2:
                 score_fin = score_max
             else:
                 score_fin = score_avg
-        except:
+        except Exception:
+            raise
             score_fin = .2
 
         # write result
         write_key = (s_id.strip(), l)
+        print dcm_info
+        print s_id, l, score_fin
         if write_key not in write_set:
             write_set.add(write_key)
             writer.writerow({

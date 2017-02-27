@@ -4,6 +4,12 @@ export depth=18
 export dataset='dreamChallenge'
 export data='/preprocessedData/dreamCh/'
 
+ls /preprocessedData/dreamCh/train/0/* | wc -l
+ls /preprocessedData/dreamCh/train/1/* | wc -l
+ls /preprocessedData/dreamCh/val/0/* | wc -l
+ls /preprocessedData/dreamCh/val/1/* | wc -l
+
+
 rm -rf scratch/*
 
 th main.lua \
@@ -16,9 +22,7 @@ th main.lua \
     -weightDecay 5e-3 \
     -dropout 0 \
     -depth ${depth} \
-    -retrain pretrain/resnet-${depth}.t7\
+    -retrain pretrained/resnet-${depth}.t7\
     -resetClassifier true \
     -nClasses 2 \
     -resume 'none' \
-
-cp -R /scratch/* /modelState/

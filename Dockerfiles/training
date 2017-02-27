@@ -29,7 +29,9 @@ ENV LUA_CPATH='/root/torch/install/lib/?.so;'$LUA_CPATH
 
 
 RUN /root/torch/install/bin/luarocks install optnet  && \
-    /root/torch/install/bin/luarocks install image   
+    /root/torch/install/bin/luarocks install image
+RUN /root/torch/install/bin/luarocks install moses   && \
+    /root/torch/install/bin/luarocks install nnlr
 
 WORKDIR /
 ARG CACHEBUST=0

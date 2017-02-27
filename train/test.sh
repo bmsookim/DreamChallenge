@@ -4,6 +4,8 @@ export width=2
 export dataset='dreamChallenge'
 export data='/preprocessedData'
 
+
+
 th test.lua \
     -dataset ${dataset} \
     -data ${data} \
