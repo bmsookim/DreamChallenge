@@ -15,15 +15,10 @@ require 'optim'
 require 'nn'
 require 'image'
 local models = require 'networks/init'
-local opts = require 'opts_test'
+local opts = require 'opts'
 local checkpoints = require 'checkpoints'
 local ffi = require 'ffi'
 local sys = require 'sys'
-
-meanstd={
-    mean = {0.496, 0.496, 0.496},
-    std  = {0.229, 0.229, 0.229},
-}
 
 torch.setdefaulttensortype('torch.FloatTensor')
 torch.setnumthreads(1)
@@ -33,7 +28,6 @@ labels = {'benign', 'malignant'}
 local opt = opts.parse(arg)
 torch.manualSeed(opt.manualSeed)
 cutorch.manualSeedAll(opt.manualSeed)
-
 -- Load previous checkpoint, if it exists
 local checkpoint, optimState = checkpoints.best(opt)
 
@@ -62,12 +56,6 @@ local function findImages(dir)
       local dirname = paths.dirname(line)
       local filename = paths.basename(line)
       local path = dirname .. '/' .. filename
--- Hey Minhwan, I edited here
--- so that the filename can include the whole directory. I found that in this case,
--- the path cannot search if there is another folder inside the test directory.
--- Therefore, I modified it to include the whole path and now the code will run
--- sweet. I might be a little late today. I think I'll come back near 12o'clock.
--- Please contact me if anything goes wrong. 
       table.insert(imagePaths, path)
       maxLength = math.max(maxLength, #path + 1)
    end
@@ -81,26 +69,41 @@ end
 
 testImagePath, nImages = findImages('/preprocessedData/dreamCh/test/')
 
+-- fd = io.open('/preprocessedData/results.txt', 'w')
 
-fd = io.open('/preprocessedData/results.txt', 'w')
+count = 0
+count_r = 0
 
 for i=1,nImages do
+   count = count + 1
    test_path = testImagePath[i]
-   test_image = image.load(test_path)
+   test_image = image.load(test_path, 3, 'float')
 
-   test_image:resize(1, 3, opt.cropSize, opt.cropSize)
+   for j = 1,3 do
+       test_image[j]:add(-0.492)
+       test_image[j]:div(0.229)
+   end
+
+   test_image:resize(1, 3, 224, 224)
+
    result = model:forward(test_image):float()
    exp = torch.exp(result)
    exp_sum = exp:sum()
    exp = torch.div(exp, exp_sum)
 
-   --print(test_path)
-   --print('|-', exp[1][2])
-   fd:write(test_path, '\t', exp[1][2], '\n')
-   -- maxs, indices = torch.max(exp, 2)
+   print(test_path)
+   print('|-', (exp[1][2]))
+   if exp[1][2] > 0.5 then
+       count_r = count_r + 1
+   end
+   --fd:write(test_path, '\t', exp[1][2], '\n')
+   maxs, indices = torch.max(exp, 2)
 
-   -- print('The prediction for '..test_path..' is '..
-   --                           sys.COLORS.red .. labels[indices:sum()] ..
-   --                           sys.COLORS.none .. ' by ' .. maxs:sum()
-   --                           .. ' confidence')
+   --[[print('The prediction for '..test_path..' is '..
+                             sys.COLORS.red .. labels[indices:sum()] ..
+                             sys.COLORS.none .. ' by ' .. maxs:sum()
+                             .. ' confidence')]]
+
 end
+
+print (count_r / count)

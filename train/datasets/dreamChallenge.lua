@@ -71,13 +71,16 @@ local meanstd = {
 function dmisDataset:preprocess()
    if self.split == 'train' then
       return t.Compose{
+          t.RandomSizedCrop(224),
           t.ColorNormalize(meanstd),
           t.HorizontalFlip(0.5),
           t.VerticalFlip(0.5),
       }
    elseif self.split == 'val' then
       return t.Compose{
+         t.Scale(256),
          t.ColorNormalize(meanstd),
+         Crop(224),
       }
    else
       error('invalid split: ' .. self.split)
