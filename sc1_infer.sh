@@ -11,4 +11,5 @@ python test.py \
     --exam_meta False   \
     --processor 1       \
     --log False         \
-    --form mem          
+    --form mem          \
+    --sampler default

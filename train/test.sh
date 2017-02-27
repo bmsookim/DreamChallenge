@@ -3,6 +3,8 @@ export depth=18
 export dataset='dreamChallenge'
 export data='/preprocessedData'
 
+
+
 th test.lua \
     -dataset ${dataset} \
     -data ${data} \
