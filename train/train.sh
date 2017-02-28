@@ -25,5 +25,3 @@ th main.lua \
     -resetClassifier true \
     -nClasses 2 \
     -resume 'none' \
-
-th main.lua \
