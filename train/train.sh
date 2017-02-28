@@ -18,8 +18,8 @@ th main.lua \
     -nGPU 2 \
     -batchSize 128 \
     -LR 1e-3 \
-    -weightDecay 5e-3 \
-    -dropout 0.3 \
+    -weightDecay 1e-3 \
+    -dropout 0 \
     -depth ${depth} \
     -retrain pretrained/resnet-${depth}.t7\
     -resetClassifier true \
