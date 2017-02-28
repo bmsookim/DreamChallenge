@@ -1,6 +1,6 @@
 #!/bin/bash
 export netType='resnet'
-export depth=18
+export depth=50
 export dataset='dreamChallenge'
 export data='/preprocessedData/dreamCh/'
 
@@ -8,7 +8,6 @@ ls /preprocessedData/dreamCh/train/0/* | wc -l
 ls /preprocessedData/dreamCh/train/1/* | wc -l
 ls /preprocessedData/dreamCh/val/0/* | wc -l
 ls /preprocessedData/dreamCh/val/1/* | wc -l
-
 
 rm -rf scratch/*
 
@@ -26,3 +25,5 @@ th main.lua \
     -resetClassifier true \
     -nClasses 2 \
     -resume 'none' \
+
+th main.lua \
