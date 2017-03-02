@@ -125,26 +125,18 @@ local function createModel(opt)
 
       -- Conv #1
       model:add(Convolution(3,64,7,7,2,2,3,3))
-        :learningRate('weight', 0.1)
-        :learningRate('bias', 0.1)
       model:add(SBatchNorm(64))
       model:add(ReLU(true))
       model:add(Max(3,3,2,2,1,1))
 
       -- Conv #2
       model:add(layer(block, 64, def[1]))
-        :learningRate('weight', 0.1)
-        :learningRate('bias', 0.1)
 
       -- Conv #3
       model:add(layer(block, 128, def[2], 2))
-        :learningRate('weight', 0.1)
-        :learningRate('bias', 0.1)
 
       -- Conv #4
       model:add(layer(block, 256, def[3], 2))
-        :learningRate('weight', 0.1)
-        :learningRate('bias', 0.1)
 
       -- Conv #5
       model:add(layer(block, 512, def[4], 2))
@@ -153,10 +145,11 @@ local function createModel(opt)
 
       -- fc layer
       model:add(nn.Linear(nFeatures, nFeatures))
-        :learningRate('weight', 10)
-        :learningRate('bias', 20)
       model:add(SBatchNorm(nFeatures))
       model:add(ReLU(true))
+
+      -- Dropout
+      model:add(Dropout())
 
       -- Classifier
       model:add(nn.Linear(nFeatures, 2))

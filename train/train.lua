@@ -71,7 +71,7 @@ function Trainer:train(epoch, dataloader)
       N = N + batchSize
       elapsed_time = elapsed_time + timer:time().real + dataTime
       
-      if n % 10 == 0 then print((' | [#%3d][%3d/%d]    Time %.3f  Loss %1.4f  Top1 %7.3f%s')
+      if n % 100 == 0 then print((' | [#%3d][%3d/%d]    Time %.3f  Loss %1.4f  Top1 %7.3f%s')
              :format(epoch, n, trainSize, timer:time().real + dataTime, loss, top1, '%')) end
       -- check that the storage didn't get changed do to an unfortunate getParameters call
       assert(self.params:storage() == self.model:parameters()[1]:storage())
@@ -107,7 +107,7 @@ function Trainer:test(epoch, dataloader)
       local top1 = self:computeScore(output, sample.target, nCrops)
       top1Sum = top1Sum + top1*batchSize
       N = N + batchSize
-      elpased_time = elapsed_time + timer:time().real + dataTime
+      elapsed_time = elapsed_time + timer:time().real + dataTime
 
       timer:reset()
       dataTimer:reset()

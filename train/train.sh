@@ -18,7 +18,7 @@ th main.lua \
     -nGPU 2 \
     -batchSize 128 \
     -LR 1e-3 \
-    -weightDecay 1e-3 \
+    -weightDecay 1e-4 \
     -dropout 0 \
     -depth ${depth} \
     -retrain pretrained/resnet-${depth}.t7\
