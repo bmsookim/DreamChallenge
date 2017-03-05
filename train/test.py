@@ -38,7 +38,7 @@ PYTHON
 """
 # Load configuration & merge with arguments
 args = option.args
-with open(args.config, 'rt') as f:
+with open(args.config, 'rt', 1) as f:
     config = yaml.safe_load(f.read())
 config = option.merge_args2config(args, config)
 pprint(config)
@@ -127,8 +127,6 @@ for k in key_all:
                     roi   = rois[view][r][idx]
                     """
                     im_og = imgs[view]['roi'][r][idx]
-                    imTool.write_im("./a.png", im_og)
-
                     processed_im.append(im_og)
 
             for im in processed_im:
@@ -175,8 +173,6 @@ for k in key_all:
 
         # write result
         write_key = (s_id.strip(), l)
-        print dcm_info
-        print s_id, l, score_fin
         if write_key not in write_set:
             write_set.add(write_key)
             writer.writerow({

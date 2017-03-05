@@ -83,12 +83,14 @@ ENV LD_LIBRARY_PATH=/root/torch/install/lib:$LD_LIBRARY_PATH
 ENV DYLD_LIBRARY_PATH=/root/torch/install/lib:$DYLD_LIBRARY_PATH
 ENV LUA_CPATH='/root/torch/install/lib/?.so;'$LUA_CPATH
 
-RUN /root/torch/install/bin/luarocks install nn      && \
-    /root/torch/install/bin/luarocks install optnet  && \
-    /root/torch/install/bin/luarocks install cunn    && \
+RUN /root/torch/install/bin/luarocks install optnet  && \
+    /root/torch/install/bin/luarocks install image
+RUN /root/torch/install/bin/luarocks install moses   && \
+    /root/torch/install/bin/luarocks install nnlr
+RUN /root/torch/install/bin/luarocks install cunn    && \
     /root/torch/install/bin/luarocks install cudnn   && \
-    /root/torch/install/bin/luarocks install cutorch && \
-    /root/torch/install/bin/luarocks install image   
+    /root/torch/install/bin/luarocks install cutorch
+
 
 # Copy projects
 WORKDIR /
@@ -111,6 +113,8 @@ WORKDIR /
 COPY dicom-preprocessing ./dicom-preprocessing
 COPY train ./train
 RUN rm -rf /dicom-preprocessing/py-faster-rcnn
+RUN rm -rf /dicom-preprocessing/.git
+RUN rm -rf /train/pretrained
 RUN cp -R /py-faster-rcnn /dicom-preprocessing/py-faster-rcnn
 
 COPY sc1_infer.sh ./sc1_infer.sh
